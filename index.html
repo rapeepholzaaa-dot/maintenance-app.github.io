@@ -127,7 +127,7 @@ tbody tr:nth-child(even){background:var(--soft)}
 <div class="card">
   <h2>📋 รายการบันทึกงานทั้งหมด</h2>
   <div class="filters">
-    <input type="search" id="fSearch" placeholder="🔍 ค้นหา ช่าง / ลูกค้า / รายละเอียด">
+    <input type="search" id="fSearch" placeholder="🔍 ค้นหา ช่าง / ลูกค้า / รายละเอียด / วันที่ (เช่น 18/11/2026)">
     <select id="fMonth"></select>
     <select id="fWorker"></select>
     <select id="fType"></select>
@@ -240,8 +240,9 @@ function filtered(jobs){
   var q=$('fSearch').value.trim().toLowerCase(),m=$('fMonth').value,w=$('fWorker').value,s=$('fStatus').value,t=$('fType').value;
   return jobs.filter(function(j){
     if(m&&mKey(j)!==m)return false;if(w&&j.worker!==w)return false;if(t&&j.type!==t)return false;if(s==='__stale'){if(j.status===DONE||!j.date||dAgo(j.date)<=SD())return false}else if(s&&j.status!==s)return false;
-    if(q&&(j.worker+' '+j.customer+' '+j.details).toLowerCase().indexOf(q)<0)return false;return true});
+    if(q){var dq=q.replace(/[-.]/g,'/'),hit=(j.worker+' '+j.customer+' '+j.details).toLowerCase().indexOf(q)>=0||dateTok(j.date).indexOf(dq)>=0;if(!hit)return false}return true});
 }
+function dateTok(d){if(!d)return '';var y=d.slice(0,4),m=d.slice(5,7),dd=d.slice(8,10),by=String(Number(y)+543);return [y+'/'+m+'/'+dd,dd+'/'+m+'/'+y,dd+'/'+m+'/'+by,dd+'/'+m,Number(dd)+'/'+Number(m)].join(' ')}
 
 function table(jobs){
   var list=filtered(jobs).sort(function(a,b){return (b.date||'').localeCompare(a.date||'')||b.id-a.id});
