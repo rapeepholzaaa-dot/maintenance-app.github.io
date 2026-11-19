@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Process and System Design Engineering Innovation·บันทึกงานช่าง (v16)</title>
+<title>Process and System Design Engineering Innovation·บันทึกงานช่าง (v17)</title>
 <style>
 :root{--bg:#eef2f8;--card:#fff;--text:#1f2a44;--muted:#6b7794;--border:#dde3ef;--p:#4f46e5;--p2:#06b6d4;--ok:#10b981;--warn:#f59e0b;--bad:#ef4444;--line:#06c755;--soft:#f5f7fc;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1424;--card:#1a2038;--text:#e8ecf8;--muted:#98a3c4;--border:#2c3558;--soft:#222a47;color-scheme:dark}}
@@ -69,6 +69,7 @@ tbody tr:nth-child(even){background:var(--soft)}
 #undo button{padding:4px 12px;background:var(--p2)}
 #fx{position:fixed;inset:0;pointer-events:none;z-index:20}
 .mic.rec{background:var(--bad)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}.chips:empty{display:none}.chip{display:inline-flex;align-items:center;gap:4px;background:var(--soft);border:1px solid var(--border);border-radius:99px;padding:3px 4px 3px 12px;font-size:13px}.chip button{padding:0 8px;font-size:14px;background:transparent;color:var(--bad);border-radius:99px;line-height:1.4}.wrow{display:flex;gap:6px}.wrow button{margin:0;white-space:nowrap}.sub{font-size:11px;color:var(--muted);font-weight:400}
 @media(prefers-reduced-motion:reduce){button{transition:none}}
 </style>
 </head>
@@ -93,7 +94,7 @@ tbody tr:nth-child(even){background:var(--soft)}
   <div id="jobForm">
     <div class="grid">
       <div class="fg"><label for="jobDate">วันที่ปฏิบัติงาน</label><input type="date" id="jobDate"></div>
-      <div class="fg"><label for="workerName">ชื่อช่างผู้ดำเนินการ</label><input type="text" id="workerName" list="workerList" placeholder="ระบุชื่อช่าง"><datalist id="workerList"></datalist></div>
+      <div class="fg"><label for="workerName">ชื่อช่างผู้ดำเนินการ <span class="sub">(งานเดียวมีได้หลายคน)</span></label><div class="chips" id="wChips"></div><div class="wrow"><input type="text" id="workerName" list="workerList" placeholder="พิมพ์ชื่อช่าง แล้วกด Enter เพื่อเพิ่มคนถัดไป"><button class="b-sm b-gray" id="wAdd" type="button">➕ เพิ่มช่าง</button></div><datalist id="workerList"></datalist></div>
     </div>
     <div class="grid">
       <div class="fg"><label for="customerName">ชื่อลูกค้า / สถานที่</label><input type="text" id="customerName" list="customerList" placeholder="ชื่อลูกค้า หรือ สถานที่เข้าซ่อม"></div>
@@ -166,12 +167,20 @@ var tt;function toast(m){var t=$('toast');t.textContent=m;t.className='on';clear
 function mKey(j){return (j.date||'').slice(0,7)}
 function mLabel(k){var p=k.split('-');var m=parseInt(p[1],10),y=parseInt(p[0],10);return (TH[m-1]||k)+' '+(y+543)}
 function cost(j){return Number(j.cost)||0}
+function wl(j){var a=[];String(j.worker||'').split(/\s*[,/、]\s*/).forEach(function(n){n=n.trim();if(n&&a.indexOf(n)<0)a.push(n)});return a.length?a:['ไม่ระบุ']}
+function share(j){return Math.round(cost(j)/wl(j).length*100)/100}
+function wrows(list){var r=[];list.forEach(function(j){var a=wl(j);a.forEach(function(w){r.push({j:j,w:w,n:a.length,c:Math.round(cost(j)/a.length*100)/100})})});return r}
+var WK=[];
+function wkDraw(){$('wChips').innerHTML=WK.map(function(n,i){return '<span class="chip">👨‍🔧 '+esc(n)+'<button type="button" data-wdel="'+i+'" title="เอาออก" aria-label="เอา '+esc(n)+' ออก">✕</button></span>'}).join('')}
+function wkAdd(){String($('workerName').value).split(/[,/、]/).forEach(function(n){n=n.trim();if(n&&WK.indexOf(n)<0)WK.push(n)});$('workerName').value='';wkDraw()}
+function wkSet(str){WK=[];$('workerName').value=String(str||'');wkAdd()}
+function wkGet(){wkAdd();return WK.join(', ')}
 function tTxt(j){var s=j.start||'',e=j.end||'';if(!s&&!e)return '-';var t=(s||'?')+' - '+(e||'?')+' น.';if(s&&e){var m=(parseInt(e.slice(0,2),10)*60+parseInt(e.slice(3,5),10))-(parseInt(s.slice(0,2),10)*60+parseInt(s.slice(3,5),10));if(m<0){m+=1440;t=t.replace(' น.',' น. +1 วัน')}t+=' ('+Math.floor(m/60)+' ชม. '+(m%60)+' นาที)'}return t}
 function money(n){return n.toLocaleString('th-TH')}
 function today(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
 
 function save(){
-  var date=$('jobDate').value,w=$('workerName').value.trim(),c=$('customerName').value.trim(),d=$('jobDetails').value.trim();
+  var date=$('jobDate').value,w=wkGet(),c=$('customerName').value.trim(),d=$('jobDetails').value.trim();
   if(!date||!w||!c||!d){toast('⚠️ กรุณากรอกข้อมูลให้ครบ');return}
   var ts=$('timeStart').value,te=$('timeEnd').value;
   
@@ -180,11 +189,11 @@ function save(){
   if(ed!=null)ex=jobs.filter(function(x){return x.id===ed})[0];
   if(ex){for(var k in rec)ex[k]=rec[k];msg='✏️ แก้ไขข้อมูลเรียบร้อย'}else{rec.id=newId();jobs.push(rec)}
   editId=null;editUI();
-  if(ed==null)setMy(w);
+  if(ed==null&&WK.length===1)setMy(w);
   setJobs(jobs);
   ['workerName','customerName','jobCost','jobDetails','timeStart','timeEnd'].forEach(function(i){$(i).value=''});
   $('jobStatus').selectedIndex=0;$('jobType').selectedIndex=0;$('jobDate').value=today();
-  $('workerName').value=myName();
+  wkSet(myName());
   render();toast(msg);
 }
 
@@ -196,7 +205,7 @@ function fillSel(sel,first,vals,labelFn){
 function render(){
   var jobs=getJobs();
   var months=[],workers=[];
-  jobs.forEach(function(j){var k=mKey(j);if(k&&months.indexOf(k)<0)months.push(k);if(j.worker&&workers.indexOf(j.worker)<0)workers.push(j.worker)});
+  jobs.forEach(function(j){var k=mKey(j);if(k&&months.indexOf(k)<0)months.push(k);wl(j).forEach(function(w){if(w!=='ไม่ระบุ'&&workers.indexOf(w)<0)workers.push(w)})});
   months.sort().reverse();workers.sort();
   fillSel($('fMonth'),'ทุกเดือน',months,mLabel);
   fillSel($('fWorker'),'ช่างทุกคน',workers);
@@ -216,7 +225,7 @@ function charts(jobs,months,workers,done){
   var sw=$('sumWorkers'),rc=$('revChart'),sc=$('statusChart');
   if(!jobs.length){var e='<div class="empty">ยังไม่มีข้อมูลงานในระบบ</div>';sw.innerHTML=e;rc.innerHTML=e;sc.innerHTML=e;return}
   var data={},max=1;
-  jobs.forEach(function(j){var k=mKey(j);if(!k)return;var w=j.worker||'ไม่ระบุ';data[k]=data[k]||{};data[k][w]=(data[k][w]||0)+1;if(data[k][w]>max)max=data[k][w]});
+  jobs.forEach(function(j){var k=mKey(j);if(!k)return;data[k]=data[k]||{};wl(j).forEach(function(w){data[k][w]=(data[k][w]||0)+1;if(data[k][w]>max)max=data[k][w]})});
   var h='';
   months.forEach(function(k){
     h+='<div class="mon">📅 '+esc(mLabel(k))+'</div>';
@@ -239,22 +248,24 @@ function charts(jobs,months,workers,done){
 function filtered(jobs){
   var q=$('fSearch').value.trim().toLowerCase(),m=$('fMonth').value,w=$('fWorker').value,s=$('fStatus').value,t=$('fType').value;
   return jobs.filter(function(j){
-    if(m&&mKey(j)!==m)return false;if(w&&j.worker!==w)return false;if(t&&j.type!==t)return false;if(s==='__stale'){if(j.status===DONE||!j.date||dAgo(j.date)<=SD())return false}else if(s&&j.status!==s)return false;
+    if(m&&mKey(j)!==m)return false;if(w&&wl(j).indexOf(w)<0)return false;if(t&&j.type!==t)return false;if(s==='__stale'){if(j.status===DONE||!j.date||dAgo(j.date)<=SD())return false}else if(s&&j.status!==s)return false;
     if(q){var dq=q.replace(/[-.]/g,'/'),hit=(j.worker+' '+j.customer+' '+j.details).toLowerCase().indexOf(q)>=0||dateTok(j.date).indexOf(dq)>=0;if(!hit)return false}return true});
 }
 function dateTok(d){if(!d)return '';var y=d.slice(0,4),m=d.slice(5,7),dd=d.slice(8,10),by=String(Number(y)+543);return [y+'/'+m+'/'+dd,dd+'/'+m+'/'+y,dd+'/'+m+'/'+by,dd+'/'+m,Number(dd)+'/'+Number(m)].join(' ')}
 
 function table(jobs){
   var list=filtered(jobs).sort(function(a,b){return (b.date||'').localeCompare(a.date||'')||b.id-a.id});
+  var fw=$('fWorker').value,rows=wrows(list).filter(function(r){return !fw||r.w===fw});
   var tb=$('tbody');
-  if(!list.length){tb.innerHTML='<tr><td colspan="9" class="empty">ไม่พบรายการ</td></tr>';return}
-  tb.innerHTML=list.map(function(j){
-    var ok=j.status===DONE;
-    return '<tr><td>'+esc(j.date)+'</td><td>'+esc(tTxt(j))+'</td><td>'+esc(j.worker)+'</td><td>'+esc(j.customer)+'</td><td>'+typeBadge(j.type)+'</td><td>'+esc(j.details).replace(/\n/g,'<br>')+'</td><td>'+money(cost(j))+' บาท</td><td><span class="badge '+(ok?'s-ok':'s-wait')+'">'+esc(j.status)+'</span>'+stale(j)+'</td><td>'
+  if(!rows.length){tb.innerHTML='<tr><td colspan="9" class="empty">ไม่พบรายการ</td></tr>';return}
+  tb.innerHTML=rows.map(function(r){
+    var j=r.j,ok=j.status===DONE,multi=r.n>1,tip=multi?' title="มีผลกับทั้งงาน (ทุกคนที่ทำร่วมกัน)"':'';
+    var others=wl(j).filter(function(x){return x!==r.w}).join(', ');
+    return '<tr><td>'+esc(j.date)+'</td><td>'+esc(tTxt(j))+'</td><td>'+esc(r.w)+(multi?'<div class="sub">👥 ทำร่วมกับ '+esc(others)+'</div>':'')+'</td><td>'+esc(j.customer)+'</td><td>'+typeBadge(j.type)+'</td><td>'+esc(j.details).replace(/\n/g,'<br>')+'</td><td>'+money(r.c)+' บาท'+(multi?'<div class="sub">แบ่งจาก '+money(cost(j))+' ÷ '+r.n+' คน</div>':'')+'</td><td><span class="badge '+(ok?'s-ok':'s-wait')+'">'+esc(j.status)+'</span>'+stale(j)+'</td><td>'
       +'<button class="b-sm b-line" data-act="line" data-id="'+j.id+'" type="button">💬 LINE</button>'
-      +'<button class="b-sm '+(ok?'b-warn':'b-ok')+'" data-act="tog" data-id="'+j.id+'" type="button">'+(ok?'↩ ย้อนสถานะ':'✔ เสร็จแล้ว')+'</button>'
-      +'<button class="b-sm b-warn" data-act="edit" data-id="'+j.id+'" type="button">✏️ แก้ไข</button>'
-      +'<button class="b-sm b-del" data-act="del" data-id="'+j.id+'" type="button">❌ ลบ</button></td></tr>';
+      +'<button class="b-sm '+(ok?'b-warn':'b-ok')+'" data-act="tog" data-id="'+j.id+'" type="button"'+tip+'>'+(ok?'↩ ย้อนสถานะ':'✔ เสร็จแล้ว')+'</button>'
+      +'<button class="b-sm b-warn" data-act="edit" data-id="'+j.id+'" type="button"'+tip+'>✏️ แก้ไข</button>'
+      +'<button class="b-sm b-del" data-act="del" data-id="'+j.id+'" type="button"'+tip+'>❌ ลบ</button></td></tr>';
   }).join('');
 }
 
@@ -280,9 +291,9 @@ function download(name,content,type){
 function q(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'}
 function csv(){
   var jobs=getJobs();if(!jobs.length){toast('ไม่มีข้อมูลสำหรับส่งออก');return}
-  var out='\uFEFFวันที่,เวลาเริ่ม,เวลาเสร็จ,ช่างผู้ดูแล,ลูกค้า/สถานที่,รายละเอียดงาน,ค่าบริการ,สถานะ,ประเภทงาน\r\n';
-  jobs.slice().sort(function(a,b){return (a.date||'').localeCompare(b.date||'')}).forEach(function(j){
-    out+=[q(j.date),q(j.start),q(j.end),q(j.worker),q(j.customer),q(j.details),cost(j),q(j.status),q(j.type)].join(',')+'\r\n'});
+  var out='\uFEFFวันที่,เวลาเริ่ม,เวลาเสร็จ,ช่างผู้ดูแล,ลูกค้า/สถานที่,รายละเอียดงาน,ค่าบริการ,สถานะ,ประเภทงาน,จำนวนช่างในงาน\r\n';
+  wrows(jobs.slice().sort(function(a,b){return (a.date||'').localeCompare(b.date||'')})).forEach(function(r){var j=r.j;
+    out+=[q(j.date),q(j.start),q(j.end),q(r.w),q(j.customer),q(j.details),r.c,q(j.status),q(j.type),r.n].join(',')+'\r\n'});
   download('รายงานแผนกช่าง_'+today()+'.csv',out,'text/csv;charset=utf-8;');
 }
 function backup(){
@@ -317,11 +328,11 @@ function monthText(){
   var jobs=getJobs(),m=$('fMonth').value;
   if(!m){var ks=jobs.map(mKey).filter(Boolean).sort();m=ks[ks.length-1]||''}
   var L=jobs.filter(function(j){return m&&mKey(j)===m});if(!L.length)return '';
-  var g={},sum=0;L.forEach(function(j){var w=j.worker||'ไม่ระบุ';(g[w]=g[w]||[]).push(j);sum+=cost(j)});
+  var g={},sum=0;L.forEach(function(j){sum+=cost(j);wl(j).forEach(function(w){(g[w]=g[w]||[]).push(j)})});
   var t='📊 สรุปงานช่าง '+mLabel(m)+'\nรวม '+L.length+' งาน · '+money(sum)+' บาท\n';
   Object.keys(g).sort().forEach(function(w){
     var rows=g[w].slice().sort(function(a,b){return (a.date+(a.start||'')).localeCompare(b.date+(b.start||''))}),c=0,mi=0;
-    rows.forEach(function(j){c+=cost(j);mi+=dur(j)});
+    rows.forEach(function(j){c+=share(j);mi+=dur(j)});
     t+='\n👨‍🔧 '+w+' — '+rows.length+' งาน'+(mi?' · '+hm(mi):'')+' · '+money(c)+' บาท\n';
     rows.forEach(function(j){t+='• '+j.date.slice(8)+'/'+j.date.slice(5,7)+(j.start?' '+j.start+(j.end?'-'+j.end:''):'')+' '+j.customer+'\n'});
   });
@@ -343,7 +354,7 @@ document.addEventListener('click',function(e){
 });
 
 
-function clearForm(){['workerName','customerName','jobCost','jobDetails','timeStart','timeEnd'].forEach(function(i){$(i).value=''});$('jobStatus').selectedIndex=0;$('jobType').selectedIndex=0;$('jobDate').value=today();$('workerName').value=myName()}
+function clearForm(){['workerName','customerName','jobCost','jobDetails','timeStart','timeEnd'].forEach(function(i){$(i).value=''});$('jobStatus').selectedIndex=0;$('jobType').selectedIndex=0;$('jobDate').value=today();wkSet(myName())}
 
 
 /* ===== v9: แก้ไขรายการ ===== */
@@ -351,7 +362,7 @@ var editId=null;
 function editUI(){var on=editId!=null;$('saveBtn').textContent=on?'💾 บันทึกการแก้ไข':'💾 บันทึกข้อมูลลงระบบ';$('cancelEdit').style.display=on?'block':'none'}
 function startEdit(j){
   editId=j.id;
-  $('jobDate').value=j.date||today();$('workerName').value=j.worker||'';$('customerName').value=j.customer||'';
+  $('jobDate').value=j.date||today();wkSet(j.worker||'');$('customerName').value=j.customer||'';
   $('jobCost').value=j.cost||'';$('jobStatus').value=j.status;$('jobDetails').value=j.details||'';
   $('timeStart').value=j.start||'';$('timeEnd').value=j.end||'';$('jobType').value=j.type||'';
   editUI();try{$('jobForm').scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}
@@ -372,7 +383,7 @@ function extras(jobs){
   $('alerts').innerHTML=a;
   if(!L.length){$('insights').innerHTML='<div class="empty">ยังไม่มีข้อมูล</div>';return}
   var hw={},pl={};
-  L.forEach(function(j){var w=j.worker||'ไม่ระบุ';hw[w]=(hw[w]||0)+dur(j);if(j.customer)pl[j.customer]=(pl[j.customer]||0)+1});
+  L.forEach(function(j){wl(j).forEach(function(w){hw[w]=(hw[w]||0)+dur(j)});if(j.customer)pl[j.customer]=(pl[j.customer]||0)+1});
   var hk=Object.keys(hw).sort(function(x,y){return hw[y]-hw[x]}),mx=Math.max(1,hw[hk[0]]);
   var h='<div class="grid"><div><div class="mon">⏱️ ชั่วโมงทำงานต่อช่าง'+(m?' ('+esc(mLabel(m))+')':'')+'</div>'+hk.map(function(w,i){return '<div class="row"><span class="nm">'+esc(w)+'</span><div class="tr"><div class="fl" style="width:'+(hw[w]/mx*100)+'%;background:'+COL[i%COL.length]+'"></div></div><span class="v" style="width:100px">'+hm(hw[w])+'</span></div>'}).join('')+'</div>';
   var pk=Object.keys(pl).sort(function(x,y){return pl[y]-pl[x]}).slice(0,5);
@@ -389,7 +400,7 @@ function printReport(){
   if(!m){var ks=jobs.map(mKey).filter(Boolean).sort();m=ks[ks.length-1]||''}
   var L=jobs.filter(function(j){return m&&mKey(j)===m}).sort(function(a,b){return (a.date+(a.start||'')).localeCompare(b.date+(b.start||''))});
   if(!L.length){toast('ไม่มีข้อมูลเดือนนี้');return}
-  var sum=0,rows=L.map(function(j){sum+=cost(j);return '<tr><td>'+esc(j.date)+'</td><td>'+esc(tTxt(j))+'</td><td>'+esc(j.worker)+'</td><td>'+esc(j.customer)+'</td><td>'+esc(j.type||'-')+'</td><td>'+esc(j.details)+'</td><td style="text-align:right">'+money(cost(j))+'</td><td>'+esc(j.status)+'</td></tr>'}).join('');
+  var sum=L.reduce(function(a,j){return a+cost(j)},0),rows=wrows(L).map(function(r){var j=r.j;return '<tr><td>'+esc(j.date)+'</td><td>'+esc(tTxt(j))+'</td><td>'+esc(r.w)+'</td><td>'+esc(j.customer)+'</td><td>'+esc(j.type||'-')+'</td><td>'+esc(j.details)+'</td><td style="text-align:right">'+money(r.c)+'</td><td>'+esc(j.status)+'</td></tr>'}).join('');
   var html='<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>รายงานงานช่าง '+esc(mLabel(m))+'</title><style>body{font-family:Sarabun,Tahoma,sans-serif;padding:20px}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid #999;padding:6px;vertical-align:top}th{background:#eee}</style></head><body><h2>รายงานงานช่าง '+esc(mLabel(m))+'</h2><p>รวม '+L.length+' งาน · ค่าบริการรวม '+money(sum)+' บาท</p><table><thead><tr><th>วันที่</th><th>เวลา</th><th>ช่าง</th><th>สถานที่</th><th>ประเภท</th><th>รายละเอียด</th><th>ค่าบริการ</th><th>สถานะ</th></tr></thead><tbody>'+rows+'</tbody></table></body></html>';
   var w=window.open('','_blank');if(!w){toast('เบราว์เซอร์บล็อกหน้าต่างใหม่ ให้อนุญาตป๊อปอัปก่อน');return}
   w.document.write(html);w.document.close();setTimeout(function(){w.focus();w.print()},400);
@@ -418,7 +429,7 @@ function rank(jobs){
   var m=$('fMonth').value,L=m?jobs.filter(function(j){return mKey(j)===m}):jobs,bd=$('board'),tc=$('typeChart');
   if(!L.length){var e='<div class="empty">ยังไม่มีข้อมูล</div>';bd.innerHTML=e;tc.innerHTML=e;return}
   var w={};
-  L.forEach(function(j){var n=j.worker||'ไม่ระบุ',x=w[n]=w[n]||{n:n,done:0,wait:0,min:0};if(j.status===DONE)x.done++;else x.wait++;x.min+=dur(j)});
+  L.forEach(function(j){wl(j).forEach(function(n){var x=w[n]=w[n]||{n:n,done:0,wait:0,min:0};if(j.status===DONE)x.done++;else x.wait++;x.min+=dur(j)})});
   var a=Object.keys(w).map(function(k){var x=w[k];x.pt=Math.round(x.done*10+x.min/60*2);return x}).sort(function(p,q){return q.pt-p.pt||q.done-p.done}),top=Math.max(1,a[0].pt),md=['🥇','🥈','🥉'];
   bd.innerHTML='<div class="psum" style="margin-top:0"><b>👑 ช่างยอดเยี่ยม'+(m?' '+esc(mLabel(m)):' (ทุกเดือน)')+': '+esc(a[0].n)+'</b></div>'
     +a.map(function(x,i){return '<div class="row"><span style="width:28px">'+(md[i]||(i+1)+'.')+'</span><span class="nm" title="'+esc(x.n)+'">'+esc(x.n)+'</span><div class="tr"><div class="fl" style="width:'+(x.pt/top*100)+'%;background:'+COL[i%COL.length]+'"></div></div><span class="v" style="width:70px">'+x.pt+' แต้ม</span></div><div style="font-size:12px;color:var(--muted);margin:-2px 0 6px 36px">✅ '+x.done+' งานเสร็จ · ⏳ '+x.wait+' ค้าง · ⏱️ '+hm(x.min)+'</div>'}).join('')
@@ -538,6 +549,10 @@ function initSync(){
   setSS('off');sync(false);
 }
 
+$('wAdd').addEventListener('click',function(){wkAdd();$('workerName').focus()});
+$('workerName').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();wkAdd()}});
+$('workerName').addEventListener('change',wkAdd);
+$('wChips').addEventListener('click',function(e){var b=e.target.closest('button[data-wdel]');if(!b)return;WK.splice(Number(b.getAttribute('data-wdel')),1);wkDraw()});
 $('saveBtn').addEventListener('click',save);
 $('btnCsv').addEventListener('click',csv);
 $('btnBackup').addEventListener('click',backup);
@@ -549,7 +564,7 @@ $('themeBtn').addEventListener('click',function(){
   r.setAttribute('data-theme',dark?'light':'dark');
 });
 $('jobDate').value=today();
-legacyFix();$('workerName').value=myName();
+legacyFix();wkSet(myName());
 render();
 initSync();
 })();
