@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Process and System Design Engineering Innovation·บันทึกงานช่าง (v16)</title>
+<style>
+:root{--bg:#eef2f8;--card:#fff;--text:#1f2a44;--muted:#6b7794;--border:#dde3ef;--p:#4f46e5;--p2:#06b6d4;--ok:#10b981;--warn:#f59e0b;--bad:#ef4444;--line:#06c755;--soft:#f5f7fc;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1424;--card:#1a2038;--text:#e8ecf8;--muted:#98a3c4;--border:#2c3558;--soft:#222a47;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1424;--card:#1a2038;--text:#e8ecf8;--muted:#98a3c4;--border:#2c3558;--soft:#222a47;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Sarabun','Segoe UI',Tahoma,sans-serif;padding:16px}
+.wrap{max-width:1100px;margin:0 auto}
+header{background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;border-radius:16px;padding:22px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 8px 24px rgba(79,70,229,.3)}
+header h1{margin:0;font-size:22px}header p{margin:4px 0 0;opacity:.9;font-size:14px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-top:16px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.card h2{margin:0 0 14px;font-size:17px;padding-left:10px;border-left:5px solid var(--p)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
+.kpi{border-radius:14px;padding:16px;color:#fff}
+.kpi b{display:block;font-size:26px;margin-top:4px}.kpi span{font-size:13px;opacity:.95}
+.k1{background:linear-gradient(135deg,#6366f1,#8b5cf6)}.k2{background:linear-gradient(135deg,#10b981,#34d399)}.k3{background:linear-gradient(135deg,#f59e0b,#fb923c)}.k4{background:linear-gradient(135deg,#06b6d4,#3b82f6)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fg{display:flex;flex-direction:column;margin-bottom:12px}
+label{font-weight:700;font-size:13px;margin-bottom:5px;color:var(--muted)}
+input,select,textarea{padding:10px;border:1px solid var(--border);border-radius:10px;font:inherit;font-size:14px;background:var(--soft);color:var(--text);width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--p);border-color:transparent}
+button{font:inherit;border:0;border-radius:10px;cursor:pointer;color:#fff;font-weight:700;padding:10px 16px;background:var(--p);transition:.2s}
+button:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.b-main{width:100%;font-size:16px;padding:13px;background:linear-gradient(135deg,var(--p),var(--p2))}
+.b-ghost{background:rgba(255,255,255,.2)}
+.b-sm{padding:6px 10px;font-size:12px;margin:2px}
+.b-line{background:var(--line)}.b-ok{background:var(--ok)}.b-del{background:var(--bad)}.b-warn{background:var(--warn)}.b-exp{background:#f59e0b}.b-gray{background:#64748b}
+.charts{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:14px}
+.charts .card{margin-top:0}
+.mon{font-weight:700;margin:10px 0 6px;font-size:14px}
+.row{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:13px}
+.row .nm{width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .tr{flex:1;background:var(--soft);border-radius:8px;height:18px;overflow:hidden}
+.row .fl{height:100%;border-radius:8px;min-width:4px}
+.row .v{width:56px;text-align:right;font-weight:700}
+.cols{display:flex;align-items:flex-end;gap:10px;height:190px;padding-top:10px}
+.col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;min-width:0}
+.col .bar{width:100%;max-width:46px;border-radius:8px 8px 0 0;background:linear-gradient(180deg,var(--p2),var(--p));min-height:3px}
+.col small{font-size:11px;color:var(--muted);margin-top:4px;text-align:center}.col em{font-style:normal;font-size:11px;font-weight:700}
+.donutbox{display:flex;flex-direction:column;align-items:center;gap:14px}
+.donut{width:150px;height:150px;border-radius:50%;display:grid;place-items:center}
+.donut div{width:94px;height:94px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-weight:700;font-size:20px;text-align:center;line-height:1.1}
+.legend{font-size:13px;display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+.empty{color:var(--muted);text-align:center;padding:18px;font-size:14px}
+.filters{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:880px}
+th,td{padding:11px;text-align:left;font-size:14px;border-bottom:1px solid var(--border);vertical-align:top}
+th{background:linear-gradient(135deg,#334155,#475569);color:#fff;font-size:13px}
+th:first-child{border-radius:10px 0 0 0}th:last-child{border-radius:0 10px 0 0}
+tbody tr:nth-child(even){background:var(--soft)}
+.badge{padding:4px 9px;border-radius:99px;font-size:12px;font-weight:700;white-space:nowrap}
+.s-ok{background:rgba(16,185,129,.18);color:#0f9d6e}.s-wait{background:rgba(245,158,11,.2);color:#c77d05}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#111827;color:#fff;padding:10px 18px;border-radius:99px;font-size:14px;opacity:0;pointer-events:none;transition:.3s;z-index:9}
+#toast.on{opacity:1}
+.lineimp table{min-width:1000px}.lineimp td input{padding:6px;font-size:13px}.psum{border:1px solid var(--border);border-radius:12px;padding:12px;margin:10px 0;background:var(--soft)}.psum h3{margin:0 0 6px;font-size:15px}.psum div{font-size:13px;margin:3px 0}.flag{font-size:11px;color:var(--warn);font-weight:700}
+#bgImg{position:fixed;inset:0;z-index:-1;background-size:cover;background-position:center;pointer-events:none}.hasbg .card{background:color-mix(in srgb,var(--card) 86%,transparent);backdrop-filter:blur(6px)}
+@media(max-width:860px){.kpis{grid-template-columns:1fr 1fr}.grid,.charts{grid-template-columns:1fr}.filters{grid-template-columns:1fr 1fr}}
+
+#undo{position:fixed;left:50%;bottom:calc(70px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#111827;color:#fff;padding:10px 16px;border-radius:99px;font-size:14px;display:none;gap:12px;align-items:center;z-index:9}
+#undo button{padding:4px 12px;background:var(--p2)}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:20}
+.mic.rec{background:var(--bad)}
+@media(prefers-reduced-motion:reduce){button{transition:none}}
+</style>
+</head>
+<body>
+<div id="bgImg"></div>
+<div class="wrap">
+<header>
+  <div><h1>🛠️ Process and System Design Engineering Innovation ·บันทึกงานช่าง</h1><p>บันทึกงาน สรุปรายเดือน กราฟ และส่งรายงานเข้า LINE</p></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="b-ghost" id="bgPick" type="button">🖼️ พื้นหลัง</button><button class="b-ghost" id="bgClear" type="button" style="display:none">🗑️ เอารูปออก</button><button class="b-ghost" id="themeBtn" type="button">🌓 โหมดสี</button><button class="b-ghost" id="syncBtn" type="button">☁️ ตั้งค่าซิงก์</button><button class="b-ghost" id="syncCfgBtn" type="button">⚙️</button><input type="file" id="bgFile" accept="image/*" style="display:none"></div>
+</header>
+
+<div id="alerts"></div>
+<div class="kpis">
+  <div class="kpi k1"><span>📋 งานทั้งหมด</span><b id="kTotal">0</b></div>
+  <div class="kpi k2"><span>✅ เสร็จสิ้น</span><b id="kDone">0</b></div>
+  <div class="kpi k3"><span>⏳ ค้างดำเนินการ</span><b id="kWait">0</b></div>
+  <div class="kpi k4"><span>💰 รายได้รวม (บาท)</span><b id="kSum">0</b></div>
+</div>
+
+<div class="card">
+  <h2>➕ เพิ่มงานใหม่</h2>
+  <div id="jobForm">
+    <div class="grid">
+      <div class="fg"><label for="jobDate">วันที่ปฏิบัติงาน</label><input type="date" id="jobDate"></div>
+      <div class="fg"><label for="workerName">ชื่อช่างผู้ดำเนินการ</label><input type="text" id="workerName" list="workerList" placeholder="ระบุชื่อช่าง"><datalist id="workerList"></datalist></div>
+    </div>
+    <div class="grid">
+      <div class="fg"><label for="customerName">ชื่อลูกค้า / สถานที่</label><input type="text" id="customerName" list="customerList" placeholder="ชื่อลูกค้า หรือ สถานที่เข้าซ่อม"></div>
+      <div class="fg"><label for="jobCost">ค่าอะไหล่ / ค่าบริการ (บาท)</label><input type="number" id="jobCost" placeholder="0" min="0" step="any"></div>
+    </div>
+    <div class="grid">
+      <div class="fg"><label for="jobStatus">สถานะงาน</label>
+        <select id="jobStatus"><option value="ดำเนินการเสร็จสิ้น">✅ ดำเนินการเสร็จสิ้น</option><option value="กำลังดำเนินการ / รออะไหล่">⏳ กำลังดำเนินการ / รออะไหล่</option></select></div>
+      <div class="fg"><label for="jobDetails">รายละเอียดงานที่ทำ <button class="b-sm b-gray mic" id="micBtn" type="button" style="display:none">🎤 พูดแทนพิมพ์</button></label><textarea id="jobDetails" rows="2" placeholder="ระบุรายละเอียดการซ่อม"></textarea></div>
+    </div>
+    <div class="fg"><label for="jobType">🏷️ ประเภทงาน</label><select id="jobType"></select></div>
+    <div class="grid">
+      <div class="fg"><label for="timeStart">⏰ เวลาเริ่มงาน</label><input type="time" id="timeStart"><button class="b-sm b-gray" type="button" data-now="timeStart" style="align-self:flex-start;margin:4px 0 0">⏱️ ใช้เวลาตอนนี้</button></div>
+      <div class="fg"><label for="timeEnd">🏁 เวลาเสร็จงาน (ข้ามวันได้)</label><input type="time" id="timeEnd"><button class="b-sm b-gray" type="button" data-now="timeEnd" style="align-self:flex-start;margin:4px 0 0">⏱️ ใช้เวลาตอนนี้</button></div>
+    </div>
+    <button class="b-main" id="saveBtn" type="button">💾 บันทึกข้อมูลลงระบบ</button>
+    <button class="b-gray" id="cancelEdit" type="button" style="display:none;width:100%;margin-top:8px">✖ ยกเลิกการแก้ไข</button>
+  </div>
+</div>
+
+<div class="charts" id="secCharts" style="margin-top:16px">
+  <div class="card"><h2>📊 งานของช่างแต่ละคน (รายเดือน)</h2><div id="sumWorkers"></div></div>
+  <div class="card"><h2>💵 รายได้รายเดือน</h2><div id="revChart"></div></div>
+  <div class="card"><h2>🥧 สถานะงาน</h2><div id="statusChart"></div></div>
+</div>
+
+<div class="grid" style="margin-top:16px"><div class="card" style="margin-top:0"><h2>🏆 ช่างยอดเยี่ยม</h2><div id="board"></div></div><div class="card" style="margin-top:0"><h2>🏷️ สัดส่วนประเภทงาน</h2><div id="typeChart"></div></div></div>
+
+<div class="card"><h2>🧠 ภาพรวมเชิงลึก</h2><datalist id="customerList"></datalist><div id="insights"></div><small style="color:var(--muted)">ชั่วโมงนับเฉพาะงานที่ใส่เวลาเริ่ม-เสร็จ · ตามเดือนที่เลือกในตัวกรอง (ถ้าไม่เลือก = ทุกเดือน)</small></div>
+
+<div class="card">
+  <h2>📋 รายการบันทึกงานทั้งหมด</h2>
+  <div class="filters">
+    <input type="search" id="fSearch" placeholder="🔍 ค้นหา ช่าง / ลูกค้า / รายละเอียด / วันที่ (เช่น 18/11/2026)">
+    <select id="fMonth"></select>
+    <select id="fWorker"></select>
+    <select id="fType"></select>
+    <select id="fStatus"><option value="">ทุกสถานะ</option><option value="ดำเนินการเสร็จสิ้น">เสร็จสิ้น</option><option value="กำลังดำเนินการ / รออะไหล่">กำลังดำเนินการ</option><option value="__stale">⚠️ ค้างเกิน 3 วัน</option></select>
+  </div>
+  <div class="tw"><table>
+    <thead><tr><th>วันที่</th><th>เวลา</th><th>ช่าง</th><th>ลูกค้า / สถานที่</th><th>ประเภท</th><th>รายละเอียด</th><th>ค่าบริการ</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table></div>
+  <div class="tools">
+    <button class="b-exp" id="btnCsv" type="button">📤 ส่งออก Excel/CSV</button>
+    <button class="b-gray" id="btnBackup" type="button">💾 สำรองข้อมูล (JSON)</button>
+    <button class="b-gray" id="btnRestore" type="button">📥 นำเข้าข้อมูลสำรอง</button>
+    <button class="b-line" id="btnSumCopy" type="button">📋 คัดลอกสรุปรายเดือน</button><button class="b-line" id="btnSumLine" type="button">💬 ส่งสรุปเข้า LINE</button><button class="b-exp" id="btnPrint" type="button">🖨️ พิมพ์รายงานรายเดือน</button>
+    <input type="file" id="fileIn" accept=".json,application/json" style="display:none">
+  </div>
+</div>
+</div>
+<div id="cfgBox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:30;align-items:center;justify-content:center;padding:16px"><div class="card" style="max-width:460px;width:100%;margin:0"><h2>☁️ ตั้งค่าซิงก์ข้อมูลกลาง</h2><div class="fg"><label for="cfgUrl">ลิงก์ Web App (Apps Script)</label><input type="url" id="cfgUrl" placeholder="https://script.google.com/macros/s/.../exec"></div><div class="fg"><label for="cfgPass">รหัสผ่านแผนก</label><input type="password" id="cfgPass" autocomplete="off"></div><button class="b-main" id="cfgSave" type="button">💾 บันทึกและซิงก์</button><button class="b-gray" id="cfgCancel" type="button" style="width:100%;margin-top:8px">ปิด</button></div></div>
+<div id="toast"></div><div id="undo"><span>🗑️ ลบรายการแล้ว</span><button id="undoBtn" type="button">↩ เลิกลบ</button></div><canvas id="fx"></canvas>
+
+<script>
+(function(){
+var KEY='departmentJobs', memAll=null;
+var TH=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+var COL=['#6366f1','#10b981','#f59e0b','#ef4444','#06b6d4','#8b5cf6','#ec4899','#84cc16'];
+var DONE='ดำเนินการเสร็จสิ้น';
+function $(id){return document.getElementById(id)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function getAll(){try{var r=localStorage.getItem(KEY);var a=r?JSON.parse(r):[];return Array.isArray(a)?a:[]}catch(e){return memAll||[]}}
+function putAll(a){memAll=a;try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){toast('บันทึกถาวรไม่ได้ ข้อมูลอยู่ชั่วคราว')}}
+function getJobs(){return getAll().filter(function(j){return !j.deleted})}
+function sig(j){return [j.date,j.worker,j.customer,j.cost,j.status,j.details,j.start,j.end,j.type].join('\u0001')}
+function setJobs(a){var all=getAll(),map={},keep={},now=Date.now(),p=getPend(),res=[];all.forEach(function(j){map[j.id]=j});a.forEach(function(j){keep[j.id]=1;var e=map[j.id];if(!e||e.deleted||sig(e)!==sig(j)){j.updated=Math.max(now,((e&&e.updated)||0)+1);delete j.deleted;p[j.id]=1}else{j.updated=e.updated}res.push(j)});all.forEach(function(e){if(!keep[e.id]){if(!e.deleted){e.deleted=true;e.updated=Math.max(now,(e.updated||0)+1);p[e.id]=1}res.push(e)}});putAll(res);setPend(p);schedSync()}
+var tt;function toast(m){var t=$('toast');t.textContent=m;t.className='on';clearTimeout(tt);tt=setTimeout(function(){t.className=''},2400)}
+function mKey(j){return (j.date||'').slice(0,7)}
+function mLabel(k){var p=k.split('-');var m=parseInt(p[1],10),y=parseInt(p[0],10);return (TH[m-1]||k)+' '+(y+543)}
+function cost(j){return Number(j.cost)||0}
+function tTxt(j){var s=j.start||'',e=j.end||'';if(!s&&!e)return '-';var t=(s||'?')+' - '+(e||'?')+' น.';if(s&&e){var m=(parseInt(e.slice(0,2),10)*60+parseInt(e.slice(3,5),10))-(parseInt(s.slice(0,2),10)*60+parseInt(s.slice(3,5),10));if(m<0){m+=1440;t=t.replace(' น.',' น. +1 วัน')}t+=' ('+Math.floor(m/60)+' ชม. '+(m%60)+' นาที)'}return t}
+function money(n){return n.toLocaleString('th-TH')}
+function today(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
+
+function save(){
+  var date=$('jobDate').value,w=$('workerName').value.trim(),c=$('customerName').value.trim(),d=$('jobDetails').value.trim();
+  if(!date||!w||!c||!d){toast('⚠️ กรุณากรอกข้อมูลให้ครบ');return}
+  var ts=$('timeStart').value,te=$('timeEnd').value;
+  
+  var jobs=getJobs();
+  var rec={date:date,worker:w,customer:c,cost:String(Math.max(0,Number($('jobCost').value)||0)),status:$('jobStatus').value,details:d,start:ts,end:te,type:$('jobType').value},ed=editId,msg='✅ บันทึกงานเรียบร้อย',ex=null;
+  if(ed!=null)ex=jobs.filter(function(x){return x.id===ed})[0];
+  if(ex){for(var k in rec)ex[k]=rec[k];msg='✏️ แก้ไขข้อมูลเรียบร้อย'}else{rec.id=newId();jobs.push(rec)}
+  editId=null;editUI();
+  if(ed==null)setMy(w);
+  setJobs(jobs);
+  ['workerName','customerName','jobCost','jobDetails','timeStart','timeEnd'].forEach(function(i){$(i).value=''});
+  $('jobStatus').selectedIndex=0;$('jobType').selectedIndex=0;$('jobDate').value=today();
+  $('workerName').value=myName();
+  render();toast(msg);
+}
+
+function fillSel(sel,first,vals,labelFn){
+  var cur=sel.value;sel.innerHTML='<option value="">'+first+'</option>'+vals.map(function(v){return '<option value="'+esc(v)+'">'+esc(labelFn?labelFn(v):v)+'</option>'}).join('');
+  if(vals.indexOf(cur)>=0)sel.value=cur;
+}
+
+function render(){
+  var jobs=getJobs();
+  var months=[],workers=[];
+  jobs.forEach(function(j){var k=mKey(j);if(k&&months.indexOf(k)<0)months.push(k);if(j.worker&&workers.indexOf(j.worker)<0)workers.push(j.worker)});
+  months.sort().reverse();workers.sort();
+  fillSel($('fMonth'),'ทุกเดือน',months,mLabel);
+  fillSel($('fWorker'),'ช่างทุกคน',workers);
+  $('workerList').innerHTML=workers.map(function(w){return '<option value="'+esc(w)+'">'}).join('');
+
+  var done=jobs.filter(function(j){return j.status===DONE}).length;
+  var sum=jobs.reduce(function(a,j){return a+cost(j)},0);
+  $('kTotal').textContent=jobs.length;$('kDone').textContent=done;$('kWait').textContent=jobs.length-done;$('kSum').textContent=money(sum);
+
+  charts(jobs,months,workers,done);
+  table(jobs);
+  extras(jobs);
+  rank(jobs);
+}
+
+function charts(jobs,months,workers,done){
+  var sw=$('sumWorkers'),rc=$('revChart'),sc=$('statusChart');
+  if(!jobs.length){var e='<div class="empty">ยังไม่มีข้อมูลงานในระบบ</div>';sw.innerHTML=e;rc.innerHTML=e;sc.innerHTML=e;return}
+  var data={},max=1;
+  jobs.forEach(function(j){var k=mKey(j);if(!k)return;var w=j.worker||'ไม่ระบุ';data[k]=data[k]||{};data[k][w]=(data[k][w]||0)+1;if(data[k][w]>max)max=data[k][w]});
+  var h='';
+  months.forEach(function(k){
+    h+='<div class="mon">📅 '+esc(mLabel(k))+'</div>';
+    Object.keys(data[k]||{}).sort().forEach(function(w){
+      var n=data[k][w],ci=workers.indexOf(w)%COL.length;if(ci<0)ci=0;
+      h+='<div class="row"><span class="nm" title="'+esc(w)+'">👨‍🔧 '+esc(w)+'</span><div class="tr"><div class="fl" style="width:'+(n/max*100)+'%;background:'+COL[ci]+'"></div></div><span class="v">'+n+' งาน</span></div>';
+    });
+  });
+  sw.innerHTML=h||'<div class="empty">ไม่มีข้อมูลวันที่</div>';
+
+  var rev={};jobs.forEach(function(j){var k=mKey(j);if(k)rev[k]=(rev[k]||0)+cost(j)});
+  var ks=Object.keys(rev).sort().slice(-6),rm=1;
+  ks.forEach(function(k){if(rev[k]>rm)rm=rev[k]});
+  rc.innerHTML=ks.length?'<div class="cols">'+ks.map(function(k){var p=k.split('-');return '<div class="col"><em>'+money(rev[k])+'</em><div class="bar" style="height:'+Math.round(rev[k]/rm*130)+'px"></div><small>'+esc((TH[parseInt(p[1],10)-1]||'').slice(0,4))+'<br>'+(parseInt(p[0],10)+543)+'</small></div>'}).join('')+'</div>':'<div class="empty">ไม่มีข้อมูล</div>';
+
+  var pct=Math.round(done/jobs.length*100);
+  sc.innerHTML='<div class="donutbox"><div class="donut" style="background:conic-gradient(var(--ok) 0 '+pct+'%,var(--warn) '+pct+'% 100%)"><div>'+pct+'%<br><small style="font-size:11px;color:var(--muted)">เสร็จสิ้น</small></div></div><div class="legend"><span><i class="dot" style="background:var(--ok)"></i>เสร็จ '+done+'</span><span><i class="dot" style="background:var(--warn)"></i>ค้าง '+(jobs.length-done)+'</span></div></div>';
+}
+
+function filtered(jobs){
+  var q=$('fSearch').value.trim().toLowerCase(),m=$('fMonth').value,w=$('fWorker').value,s=$('fStatus').value,t=$('fType').value;
+  return jobs.filter(function(j){
+    if(m&&mKey(j)!==m)return false;if(w&&j.worker!==w)return false;if(t&&j.type!==t)return false;if(s==='__stale'){if(j.status===DONE||!j.date||dAgo(j.date)<=SD())return false}else if(s&&j.status!==s)return false;
+    if(q){var dq=q.replace(/[-.]/g,'/'),hit=(j.worker+' '+j.customer+' '+j.details).toLowerCase().indexOf(q)>=0||dateTok(j.date).indexOf(dq)>=0;if(!hit)return false}return true});
+}
+function dateTok(d){if(!d)return '';var y=d.slice(0,4),m=d.slice(5,7),dd=d.slice(8,10),by=String(Number(y)+543);return [y+'/'+m+'/'+dd,dd+'/'+m+'/'+y,dd+'/'+m+'/'+by,dd+'/'+m,Number(dd)+'/'+Number(m)].join(' ')}
+
+function table(jobs){
+  var list=filtered(jobs).sort(function(a,b){return (b.date||'').localeCompare(a.date||'')||b.id-a.id});
+  var tb=$('tbody');
+  if(!list.length){tb.innerHTML='<tr><td colspan="9" class="empty">ไม่พบรายการ</td></tr>';return}
+  tb.innerHTML=list.map(function(j){
+    var ok=j.status===DONE;
+    return '<tr><td>'+esc(j.date)+'</td><td>'+esc(tTxt(j))+'</td><td>'+esc(j.worker)+'</td><td>'+esc(j.customer)+'</td><td>'+typeBadge(j.type)+'</td><td>'+esc(j.details).replace(/\n/g,'<br>')+'</td><td>'+money(cost(j))+' บาท</td><td><span class="badge '+(ok?'s-ok':'s-wait')+'">'+esc(j.status)+'</span>'+stale(j)+'</td><td>'
+      +'<button class="b-sm b-line" data-act="line" data-id="'+j.id+'" type="button">💬 LINE</button>'
+      +'<button class="b-sm '+(ok?'b-warn':'b-ok')+'" data-act="tog" data-id="'+j.id+'" type="button">'+(ok?'↩ ย้อนสถานะ':'✔ เสร็จแล้ว')+'</button>'
+      +'<button class="b-sm b-warn" data-act="edit" data-id="'+j.id+'" type="button">✏️ แก้ไข</button>'
+      +'<button class="b-sm b-del" data-act="del" data-id="'+j.id+'" type="button">❌ ลบ</button></td></tr>';
+  }).join('');
+}
+
+$('tbody').addEventListener('click',function(e){
+  var b=e.target.closest('button[data-act]');if(!b)return;
+  var id=Number(b.getAttribute('data-id')),act=b.getAttribute('data-act'),jobs=getJobs();
+  var j=jobs.filter(function(x){return x.id===id})[0];if(!j)return;
+  if(act==='line'){
+    var t='📌 สรุปรายงานการปฏิบัติงาน\n🗓️ วันที่: '+j.date+'\n⏰ เวลา: '+tTxt(j)+'\n🛠️ ช่างผู้ดูแล: '+j.worker+(j.type?'\n🏷️ ประเภท: '+j.type:'')+'\n🏢 สถานที่: '+j.customer+'\n📝 รายละเอียด: '+j.details+'\n💰 ค่าบริการ: '+money(cost(j))+' บาท\n✅ สถานะ: '+j.status;
+    window.open('https://line.me/R/msg/text/?'+encodeURIComponent(t),'_blank');
+  }else if(act==='tog'){
+    j.status=j.status===DONE?'กำลังดำเนินการ / รออะไหล่':DONE;setJobs(jobs);render();toast('อัปเดตสถานะแล้ว');
+  }else if(act==='edit'){startEdit(j)}else if(act==='del'){
+    setJobs(jobs.filter(function(x){return x.id!==id}));if(editId===id){editId=null;editUI();clearForm()}render();showUndo(j)
+  }
+});
+
+function download(name,content,type){
+  var blob=new Blob([content],{type:type});var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=name;a.style.display='none';document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500);
+}
+function q(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'}
+function csv(){
+  var jobs=getJobs();if(!jobs.length){toast('ไม่มีข้อมูลสำหรับส่งออก');return}
+  var out='\uFEFFวันที่,เวลาเริ่ม,เวลาเสร็จ,ช่างผู้ดูแล,ลูกค้า/สถานที่,รายละเอียดงาน,ค่าบริการ,สถานะ,ประเภทงาน\r\n';
+  jobs.slice().sort(function(a,b){return (a.date||'').localeCompare(b.date||'')}).forEach(function(j){
+    out+=[q(j.date),q(j.start),q(j.end),q(j.worker),q(j.customer),q(j.details),cost(j),q(j.status),q(j.type)].join(',')+'\r\n'});
+  download('รายงานแผนกช่าง_'+today()+'.csv',out,'text/csv;charset=utf-8;');
+}
+function backup(){
+  var jobs=getJobs();if(!jobs.length){toast('ไม่มีข้อมูลสำหรับสำรอง');return}
+  download('backup_jobs_'+today()+'.json',JSON.stringify(jobs,null,1),'application/json');try{localStorage.setItem('lastBackup',String(Date.now()))}catch(e){}
+}
+function restore(file){
+  if(!file)return;var r=new FileReader();
+  r.onload=function(){
+    try{
+      var a=JSON.parse(r.result);if(a&&!Array.isArray(a)&&Array.isArray(a.jobs))a=a.jobs;if(!Array.isArray(a))throw 0;
+      var cur=getJobs(),ids={};cur.forEach(function(j){ids[j.id]=1});var n=0,dup=0,bad=0;
+      a.forEach(function(j,i){
+        if(j&&typeof j==='object'&&j.date&&j.worker){
+          var id=Number(j.id)||Date.now()+i;if(ids[id]){dup++;return}ids[id]=1;
+          cur.push({id:id,date:String(j.date),worker:String(j.worker),customer:String(j.customer||''),cost:String(Number(j.cost)||0),status:String(j.status||DONE),details:String(j.details||''),start:String(j.start||''),end:String(j.end||''),type:String(j.type||'')});n++}else bad++;
+      });
+      setJobs(cur);render();toast('📥 นำเข้า '+n+' รายการ · ในไฟล์ทั้งหมด '+a.length+(dup?' · ซ้ำกับที่มีอยู่ '+dup:'')+(bad?' · ข้ามเพราะข้อมูลไม่ครบ '+bad:''));
+    }catch(e){toast('ไฟล์ไม่ถูกต้อง')}
+    $('fileIn').value='';
+  };
+  r.readAsText(file);
+}
+
+
+/* ===== v7: สรุป LINE / ชื่อแทน / งานค้าง / เวลาตอนนี้ ===== */
+function dAgo(d){return Math.floor((Date.parse(today())-Date.parse(d))/864e5)}
+function stale(j){if(j.status===DONE||!j.date)return '';var n=dAgo(j.date);return n>SD()?'<div class="flag">⚠️ ค้าง '+n+' วัน</div>':''}
+function dur(j){if(!j.start||!j.end)return 0;var m=(+j.end.slice(0,2)*60+ +j.end.slice(3,5))-(+j.start.slice(0,2)*60+ +j.start.slice(3,5));return m<0?m+1440:m}
+function hm(m){return Math.floor(m/60)+' ชม. '+(m%60)+' นาที'}
+function monthText(){
+  var jobs=getJobs(),m=$('fMonth').value;
+  if(!m){var ks=jobs.map(mKey).filter(Boolean).sort();m=ks[ks.length-1]||''}
+  var L=jobs.filter(function(j){return m&&mKey(j)===m});if(!L.length)return '';
+  var g={},sum=0;L.forEach(function(j){var w=j.worker||'ไม่ระบุ';(g[w]=g[w]||[]).push(j);sum+=cost(j)});
+  var t='📊 สรุปงานช่าง '+mLabel(m)+'\nรวม '+L.length+' งาน · '+money(sum)+' บาท\n';
+  Object.keys(g).sort().forEach(function(w){
+    var rows=g[w].slice().sort(function(a,b){return (a.date+(a.start||'')).localeCompare(b.date+(b.start||''))}),c=0,mi=0;
+    rows.forEach(function(j){c+=cost(j);mi+=dur(j)});
+    t+='\n👨‍🔧 '+w+' — '+rows.length+' งาน'+(mi?' · '+hm(mi):'')+' · '+money(c)+' บาท\n';
+    rows.forEach(function(j){t+='• '+j.date.slice(8)+'/'+j.date.slice(5,7)+(j.start?' '+j.start+(j.end?'-'+j.end:''):'')+' '+j.customer+'\n'});
+  });
+  return t.trim();
+}
+function fbCopy(t){var a=document.createElement('textarea');a.value=t;a.style.cssText='position:fixed;opacity:0';document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('📋 คัดลอกแล้ว')}catch(e){toast('คัดลอกไม่ได้')}a.remove()}
+$('btnSumCopy').addEventListener('click',function(){
+  var t=monthText();if(!t){toast('ไม่มีข้อมูลเดือนนี้');return}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){toast('📋 คัดลอกสรุปแล้ว')},function(){fbCopy(t)})}else fbCopy(t);
+});
+$('btnSumLine').addEventListener('click',function(){
+  var t=monthText();if(!t){toast('ไม่มีข้อมูลเดือนนี้');return}
+  if(t.length>800)t=t.slice(0,800)+'\n…(ตัดเพราะยาว ใช้ปุ่มคัดลอกเพื่อได้ครบ)';
+  window.open('https://line.me/R/msg/text/?'+encodeURIComponent(t),'_blank');
+});
+document.addEventListener('click',function(e){
+  var id=e.target.getAttribute&&e.target.getAttribute('data-now');if(!id)return;
+  var d=new Date();$(id).value=p2(d.getHours())+':'+p2(d.getMinutes());
+});
+
+
+function clearForm(){['workerName','customerName','jobCost','jobDetails','timeStart','timeEnd'].forEach(function(i){$(i).value=''});$('jobStatus').selectedIndex=0;$('jobType').selectedIndex=0;$('jobDate').value=today();$('workerName').value=myName()}
+
+
+/* ===== v9: แก้ไขรายการ ===== */
+var editId=null;
+function editUI(){var on=editId!=null;$('saveBtn').textContent=on?'💾 บันทึกการแก้ไข':'💾 บันทึกข้อมูลลงระบบ';$('cancelEdit').style.display=on?'block':'none'}
+function startEdit(j){
+  editId=j.id;
+  $('jobDate').value=j.date||today();$('workerName').value=j.worker||'';$('customerName').value=j.customer||'';
+  $('jobCost').value=j.cost||'';$('jobStatus').value=j.status;$('jobDetails').value=j.details||'';
+  $('timeStart').value=j.start||'';$('timeEnd').value=j.end||'';$('jobType').value=j.type||'';
+  editUI();try{$('jobForm').scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}
+  toast('✏️ กำลังแก้ไขรายการ แก้ไขแล้วกด "บันทึกการแก้ไข"');
+}
+$('cancelEdit').addEventListener('click',function(){editId=null;editUI();clearForm();toast('ยกเลิกการแก้ไขแล้ว')});
+
+
+/* ===== v10: แจ้งเตือน / ภาพรวมเชิงลึก / พิมพ์รายงาน ===== */
+function extras(jobs){
+  var m=$('fMonth').value,L=m?jobs.filter(function(j){return mKey(j)===m}):jobs;
+  var cs={};jobs.forEach(function(j){if(j.customer)cs[j.customer]=1});
+  $('customerList').innerHTML=Object.keys(cs).sort().map(function(c){return '<option value="'+esc(c)+'">'}).join('');
+  var a='',st=jobs.filter(function(j){return j.status!==DONE&&j.date&&dAgo(j.date)>SD()}).length,lb=0;
+  if(st)a+='<div class="psum"><b>⚠️ มีงานค้างเกิน '+SD()+' วัน '+st+' รายการ</b> <button class="b-sm b-warn" id="alStale" type="button">ดูรายการ</button></div>';
+  try{lb=Number(localStorage.getItem('lastBackup'))||0}catch(e){}
+  if(jobs.length&&Date.now()-lb>BD()*864e5)a+='<div class="psum"><b>💾 ยังไม่ได้สำรองข้อมูลเกิน '+BD()+' วัน</b> (ข้อมูลเก็บในเบราว์เซอร์ อาจหายได้) <button class="b-sm b-ok" id="alBackup" type="button">สำรองตอนนี้</button></div>';
+  $('alerts').innerHTML=a;
+  if(!L.length){$('insights').innerHTML='<div class="empty">ยังไม่มีข้อมูล</div>';return}
+  var hw={},pl={};
+  L.forEach(function(j){var w=j.worker||'ไม่ระบุ';hw[w]=(hw[w]||0)+dur(j);if(j.customer)pl[j.customer]=(pl[j.customer]||0)+1});
+  var hk=Object.keys(hw).sort(function(x,y){return hw[y]-hw[x]}),mx=Math.max(1,hw[hk[0]]);
+  var h='<div class="grid"><div><div class="mon">⏱️ ชั่วโมงทำงานต่อช่าง'+(m?' ('+esc(mLabel(m))+')':'')+'</div>'+hk.map(function(w,i){return '<div class="row"><span class="nm">'+esc(w)+'</span><div class="tr"><div class="fl" style="width:'+(hw[w]/mx*100)+'%;background:'+COL[i%COL.length]+'"></div></div><span class="v" style="width:100px">'+hm(hw[w])+'</span></div>'}).join('')+'</div>';
+  var pk=Object.keys(pl).sort(function(x,y){return pl[y]-pl[x]}).slice(0,5);
+  h+='<div><div class="mon">🏢 สถานที่ที่เข้าซ่อมบ่อย</div>'+(pk.map(function(c,i){return '<div class="row"><span class="nm" style="width:150px" title="'+esc(c)+'">'+(i+1)+'. '+esc(c)+'</span><span class="v">'+pl[c]+' ครั้ง</span>'+(pl[c]>=3?'<span class="flag">🔁 ซ้ำบ่อย</span>':'')+'</div>'}).join('')||'<div class="empty">ไม่มีข้อมูล</div>')+'</div></div>';
+  $('insights').innerHTML=h;
+}
+$('alerts').addEventListener('click',function(e){
+  if(e.target.id==='alStale'){$('fStatus').value='__stale';table(getJobs());try{$('tbody').scrollIntoView({behavior:'smooth',block:'center'})}catch(x){}}
+  else if(e.target.id==='alBackup'){backup();extras(getJobs())}
+});
+['input','change'].forEach(function(ev){$('fMonth').addEventListener(ev,function(){extras(getJobs());rank(getJobs())})});
+function printReport(){
+  var jobs=getJobs(),m=$('fMonth').value;
+  if(!m){var ks=jobs.map(mKey).filter(Boolean).sort();m=ks[ks.length-1]||''}
+  var L=jobs.filter(function(j){return m&&mKey(j)===m}).sort(function(a,b){return (a.date+(a.start||'')).localeCompare(b.date+(b.start||''))});
+  if(!L.length){toast('ไม่มีข้อมูลเดือนนี้');return}
+  var sum=0,rows=L.map(function(j){sum+=cost(j);return '<tr><td>'+esc(j.date)+'</td><td>'+esc(tTxt(j))+'</td><td>'+esc(j.worker)+'</td><td>'+esc(j.customer)+'</td><td>'+esc(j.type||'-')+'</td><td>'+esc(j.details)+'</td><td style="text-align:right">'+money(cost(j))+'</td><td>'+esc(j.status)+'</td></tr>'}).join('');
+  var html='<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>รายงานงานช่าง '+esc(mLabel(m))+'</title><style>body{font-family:Sarabun,Tahoma,sans-serif;padding:20px}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid #999;padding:6px;vertical-align:top}th{background:#eee}</style></head><body><h2>รายงานงานช่าง '+esc(mLabel(m))+'</h2><p>รวม '+L.length+' งาน · ค่าบริการรวม '+money(sum)+' บาท</p><table><thead><tr><th>วันที่</th><th>เวลา</th><th>ช่าง</th><th>สถานที่</th><th>ประเภท</th><th>รายละเอียด</th><th>ค่าบริการ</th><th>สถานะ</th></tr></thead><tbody>'+rows+'</tbody></table></body></html>';
+  var w=window.open('','_blank');if(!w){toast('เบราว์เซอร์บล็อกหน้าต่างใหม่ ให้อนุญาตป๊อปอัปก่อน');return}
+  w.document.write(html);w.document.close();setTimeout(function(){w.focus();w.print()},400);
+}
+$('btnPrint').addEventListener('click',printReport);
+
+/* ===== พื้นหลัง ===== */
+var BK='bgImage';
+function SD(){return 3}function BD(){return 7}
+function getBg(){try{return localStorage.getItem(BK)||''}catch(e){return ''}}
+function setBg(u){var el=$('bgImg');el.style.backgroundImage=u?'url("'+u+'")':'';el.style.opacity=u?0.35:0;document.documentElement.classList.toggle('hasbg',!!u);$('bgClear').style.display=u?'':'none'}
+$('bgPick').addEventListener('click',function(){$('bgFile').click()});
+$('bgClear').addEventListener('click',function(){try{localStorage.removeItem(BK)}catch(e){}setBg('');toast('🗑️ เอารูปพื้นหลังออกแล้ว')});
+$('bgFile').addEventListener('change',function(){var f=this.files&&this.files[0],inp=this;if(!f)return;var rd=new FileReader();rd.onload=function(){var im=new Image();im.onload=function(){var w=Math.min(1280,im.width),h=Math.round(im.height*w/im.width),cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(im,0,0,w,h);var u=cv.toDataURL('image/jpeg',0.72);try{localStorage.setItem(BK,u)}catch(e){toast('เก็บรูปถาวรไม่ได้ (รูปอยู่ชั่วคราว)')}setBg(u);toast('🖼️ ตั้งพื้นหลังแล้ว')};im.onerror=function(){toast('อ่านรูปไม่ได้')};im.src=rd.result};rd.readAsDataURL(f);inp.value=''});
+setBg(getBg());
+
+/* ===== v14: ประเภทงาน + ช่างยอดเยี่ยม ===== */
+var TYPES=[{v:'ไฟฟ้า',e:'⚡',c:'#f59e0b'},{v:'แอร์',e:'❄️',c:'#06b6d4'},{v:'ประปา',e:'🚰',c:'#3b82f6'},{v:'โครงสร้าง/ก่อสร้าง',e:'🏗️',c:'#8b5cf6'},{v:'อื่นๆ',e:'🔧',c:'#64748b'}];
+function tInfo(v){return TYPES.filter(function(t){return t.v===v})[0]}
+function typeBadge(v){var t=tInfo(v);return t?'<span class="badge" style="background:'+t.c+'26;color:'+t.c+'">'+t.e+' '+esc(t.v)+'</span>':'<span style="color:var(--muted)">-</span>'}
+function initTypes(){
+  var o=TYPES.map(function(t){return '<option value="'+esc(t.v)+'">'+t.e+' '+esc(t.v)+'</option>'}).join('');
+  $('jobType').innerHTML='<option value="">— ไม่ระบุ —</option>'+o;$('fType').innerHTML='<option value="">ทุกประเภท</option>'+o;
+}
+function rank(jobs){
+  var m=$('fMonth').value,L=m?jobs.filter(function(j){return mKey(j)===m}):jobs,bd=$('board'),tc=$('typeChart');
+  if(!L.length){var e='<div class="empty">ยังไม่มีข้อมูล</div>';bd.innerHTML=e;tc.innerHTML=e;return}
+  var w={};
+  L.forEach(function(j){var n=j.worker||'ไม่ระบุ',x=w[n]=w[n]||{n:n,done:0,wait:0,min:0};if(j.status===DONE)x.done++;else x.wait++;x.min+=dur(j)});
+  var a=Object.keys(w).map(function(k){var x=w[k];x.pt=Math.round(x.done*10+x.min/60*2);return x}).sort(function(p,q){return q.pt-p.pt||q.done-p.done}),top=Math.max(1,a[0].pt),md=['🥇','🥈','🥉'];
+  bd.innerHTML='<div class="psum" style="margin-top:0"><b>👑 ช่างยอดเยี่ยม'+(m?' '+esc(mLabel(m)):' (ทุกเดือน)')+': '+esc(a[0].n)+'</b></div>'
+    +a.map(function(x,i){return '<div class="row"><span style="width:28px">'+(md[i]||(i+1)+'.')+'</span><span class="nm" title="'+esc(x.n)+'">'+esc(x.n)+'</span><div class="tr"><div class="fl" style="width:'+(x.pt/top*100)+'%;background:'+COL[i%COL.length]+'"></div></div><span class="v" style="width:70px">'+x.pt+' แต้ม</span></div><div style="font-size:12px;color:var(--muted);margin:-2px 0 6px 36px">✅ '+x.done+' งานเสร็จ · ⏳ '+x.wait+' ค้าง · ⏱️ '+hm(x.min)+'</div>'}).join('')
+    +'<small style="color:var(--muted)">คะแนน = งานเสร็จ × 10 + ชั่วโมงทำงาน × 2 (ตามเดือนที่เลือกในตัวกรอง)</small>';
+  var c={},r={},n0=0,mx=1;
+  L.forEach(function(j){var k=tInfo(j.type)?j.type:'';c[k]=(c[k]||0)+1;r[k]=(r[k]||0)+cost(j);if(c[k]>mx)mx=c[k]});
+  var keys=TYPES.map(function(t){return t.v}).concat(['']).filter(function(k){return c[k]});
+  tc.innerHTML=keys.map(function(k){var t=tInfo(k);return '<div class="row"><span class="nm" style="width:130px">'+(t?t.e+' '+esc(t.v):'❔ ไม่ระบุ')+'</span><div class="tr"><div class="fl" style="width:'+(c[k]/mx*100)+'%;background:'+(t?t.c:'#94a3b8')+'"></div></div><span class="v" style="width:110px">'+c[k]+' งาน · '+money(r[k])+'</span></div>'}).join('');
+}
+initTypes();
+
+
+/* ===== v15: จับเวลา / พูดแทนพิมพ์ / ปฏิทินความหนาแน่น / เลิกลบ / ฉลองงานเสร็จ / ตัวเลขนับขึ้น ===== */
+var RM=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function p2(n){return ('0'+n).slice(-2)}
+// 1) เลิกลบ
+var undoJob=null,ut;
+function showUndo(j){undoJob=j;var u=$('undo');u.style.display='flex';clearTimeout(ut);ut=setTimeout(function(){u.style.display='none';undoJob=null},6000)}
+$('undoBtn').addEventListener('click',function(){if(!undoJob)return;var a=getJobs();a.push(undoJob);setJobs(a);undoJob=null;$('undo').style.display='none';render();toast('↩ กู้รายการคืนแล้ว')});
+// 3) พูดแทนพิมพ์
+(function(){var SR=window.SpeechRecognition||window.webkitSpeechRecognition,mb=$('micBtn');if(!SR)return;mb.style.display='';var rec=null;
+  mb.addEventListener('click',function(){
+    if(rec){rec.stop();return}
+    rec=new SR();rec.lang='th-TH';rec.interimResults=false;rec.continuous=false;
+    rec.onresult=function(e){var t=e.results[0][0].transcript,d=$('jobDetails');d.value=(d.value?d.value+' ':'')+t};
+    rec.onerror=function(){toast('ใช้ไมค์ไม่ได้ ตรวจสอบสิทธิ์ไมโครโฟนของเบราว์เซอร์')};
+    rec.onend=function(){rec=null;mb.classList.remove('rec');mb.textContent='🎤 พูดแทนพิมพ์'};
+    try{rec.start();mb.classList.add('rec');mb.textContent='⏺ กำลังฟัง… (กดเพื่อหยุด)'}catch(x){rec=null}
+  });
+})();
+// 6) ฉลองเมื่อปิดงาน
+function confetti(){
+  if(RM)return;var cv=$('fx'),x=cv.getContext('2d');cv.width=innerWidth;cv.height=innerHeight;
+  var P=[],i,C=['#6366f1','#10b981','#f59e0b','#ef4444','#06b6d4','#ec4899'];
+  for(i=0;i<90;i++)P.push({x:innerWidth/2,y:innerHeight*.6,vx:(Math.random()-.5)*14,vy:-Math.random()*14-4,s:Math.random()*6+3,c:C[i%6],r:Math.random()*6});
+  var f=0;(function t(){x.clearRect(0,0,cv.width,cv.height);P.forEach(function(p){p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.r+=.2;x.fillStyle=p.c;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);x.restore()});
+    if(++f<95)requestAnimationFrame(t);else x.clearRect(0,0,cv.width,cv.height)})();
+}
+$('tbody').addEventListener('click',function(e){var b=e.target.closest('button[data-act="tog"]');if(b&&b.textContent.indexOf('เสร็จแล้ว')>=0)confetti()});
+// 7) ตัวเลข KPI นับขึ้น + ปุ่มลัด "/" ค้นหา
+var lastK={};
+function countUp(){
+  ['kTotal','kDone','kWait','kSum'].forEach(function(id){
+    var el=$(id),to=Number(String(el.textContent).replace(/,/g,''))||0,from=lastK[id]||0;lastK[id]=to;if(RM||from===to)return;
+    var t0=Date.now();(function st(){var k=Math.min(1,(Date.now()-t0)/600),v=Math.round(from+(to-from)*(1-Math.pow(1-k,3)));el.textContent=id==='kSum'?money(v):v;if(k<1)requestAnimationFrame(st)})();
+  });
+}
+document.addEventListener('keydown',function(e){if(e.key==='/'&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();$('fSearch').focus();$('fSearch').scrollIntoView({behavior:'smooth',block:'center'})}});
+var _render=render;render=function(){_render();var j=getJobs();countUp()};
+
+/* ===== v16: ซิงก์ข้อมูลกลาง (Google Sheets) ===== */
+var SYNC_URL='https://script.google.com/macros/s/AKfycbySXikLP35hM4_fqJ76MxdvQ_hM0gNBukzUDH4hDdDpjscUYK2n4YWwDExuZXe0YC8Q/exec', SYNC_PASS='12344321';   // ผู้ดูแลใส่ลิงก์ Web App และรหัสผ่านตรงนี้ได้ ช่างจะไม่ต้องตั้งค่าเอง
+var syncing=false,syncAgain=false,syncT=null,lastOk=0,memPend={};
+function lsGet(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function myName(){try{return localStorage.getItem('myName')||''}catch(e){return ''}}
+function setMy(n){try{localStorage.setItem('myName',n)}catch(e){}}
+function newId(){return Date.now()*100+Math.floor(Math.random()*100)}
+function cfg(){var c=lsGet('syncCfg',{})||{};return{url:c.url||SYNC_URL,pass:c.pass||SYNC_PASS}}
+function getPend(){var p=lsGet('syncPending',null);return (p&&typeof p==='object')?p:memPend}
+function setPend(p){memPend=p;lsSet('syncPending',p)}
+function legacyFix(){var all=getAll(),p=getPend(),ch=false;all.forEach(function(j){if(!j.updated){j.updated=(j.id<1e13?j.id:Date.now());p[j.id]=1;ch=true}});if(ch){putAll(all);setPend(p)}}
+function hh(ts){var d=new Date(ts);return p2(d.getHours())+':'+p2(d.getMinutes())}
+function setSS(s){var b=$('syncBtn');if(!b)return;var n=Object.keys(getPend()).length,t={off:'☁️ ตั้งค่าซิงก์',busy:'🔄 กำลังซิงก์…',ok:'☁️ ซิงก์แล้ว '+hh(lastOk),offline:'📴 ออฟไลน์',err:'⚠️ ซิงก์ไม่สำเร็จ',auth:'🔒 รหัสไม่ถูกต้อง'}[s]||'☁️';b.textContent=t+((n&&s!=='off'&&s!=='busy')?' · รอส่ง '+n:'')}
+function merge(remote){
+  var all=getAll(),map={},p=getPend(),ch=false;
+  all.forEach(function(j){map[j.id]=j});
+  remote.forEach(function(r){
+    var id=Number(r.id);if(!id||(!r.date&&!r.deleted))return;
+    var ru=Number(r.updated)||0,e=map[id],k;
+    var n={id:id,date:String(r.date||''),worker:String(r.worker||''),customer:String(r.customer||''),cost:String(Number(r.cost)||0),status:String(r.status||DONE),details:String(r.details||''),start:String(r.start||''),end:String(r.end||''),type:String(r.type||''),updated:ru};
+    if(r.deleted)n.deleted=true;
+    if(!e){all.push(n);map[id]=n;ch=true;delete p[id]}
+    else if(ru>(e.updated||0)){for(k in e)delete e[k];for(k in n)e[k]=n[k];ch=true;delete p[id]}
+    else if(ru===(e.updated||0)){delete p[id]}
+  });
+  if(ch)putAll(all);
+  setPend(p);return ch;
+}
+function schedSync(){clearTimeout(syncT);syncT=setTimeout(function(){sync(false)},1500)}
+function openCfg(){var c=cfg();$('cfgUrl').value=c.url;$('cfgPass').value=c.pass;$('cfgBox').style.display='flex'}
+function closeCfg(){$('cfgBox').style.display='none'}
+function sync(manual){
+  var c=cfg();
+  if(!c.url||!c.pass){setSS('off');if(manual)openCfg();return}
+  if(!navigator.onLine){setSS('offline');if(manual)toast('📴 ไม่มีอินเทอร์เน็ต งานจะถูกส่งอัตโนมัติเมื่อออนไลน์');return}
+  if(syncing){syncAgain=true;return}
+  syncing=true;setSS('busy');
+  if(lsGet('syncUrlUsed','')!==c.url){var al=getAll(),pa=getPend();al.forEach(function(j){pa[j.id]=1});setPend(pa);lsSet('syncUrlUsed',c.url)}
+  var p=getPend(),send=getAll().filter(function(j){return p[j.id]});
+  var ctl=window.AbortController?new AbortController():null,to=setTimeout(function(){if(ctl)ctl.abort()},30000);
+  fetch(c.url,{method:'POST',body:JSON.stringify({pass:c.pass,action:'sync',jobs:send}),signal:ctl?ctl.signal:undefined})
+  .then(function(r){return r.json()})
+  .then(function(d){
+    clearTimeout(to);syncing=false;
+    if(!d||!d.ok){if(d&&d.error==='auth'){setSS('auth');toast('🔒 รหัสผ่านซิงก์ไม่ถูกต้อง')}else{setSS('err');if(manual)toast('⚠️ เซิร์ฟเวอร์ตอบกลับผิดพลาด')}return}
+    var ch=merge(d.jobs||[]);lastOk=Date.now();setSS('ok');if(ch)render();
+    if(manual)toast('☁️ ซิงก์เรียบร้อย');
+    if(syncAgain){syncAgain=false;schedSync()}
+  })
+  .catch(function(){clearTimeout(to);syncing=false;setSS(navigator.onLine?'err':'offline');if(manual)toast('⚠️ ซิงก์ไม่สำเร็จ ลองใหม่อีกครั้ง')});
+}
+function initSync(){
+  $('syncBtn').addEventListener('click',function(){sync(true)});
+  $('syncCfgBtn').addEventListener('click',openCfg);
+  $('cfgCancel').addEventListener('click',closeCfg);
+  $('cfgSave').addEventListener('click',function(){
+    var u=$('cfgUrl').value.trim(),pw=$('cfgPass').value;
+    if(!/^https:\/\/script\.google(usercontent)?\.com\//.test(u)){toast('⚠️ ลิงก์ต้องขึ้นต้นด้วย https://script.google.com/');return}
+    if(!pw){toast('⚠️ กรุณาใส่รหัสผ่าน');return}
+    lsSet('syncCfg',{url:u,pass:pw});closeCfg();sync(true);
+  });
+  window.addEventListener('online',function(){sync(false)});
+  window.addEventListener('offline',function(){setSS('offline')});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)sync(false)});
+  setInterval(function(){if(!document.hidden)sync(false)},60000);
+  setSS('off');sync(false);
+}
+
+$('saveBtn').addEventListener('click',save);
+$('btnCsv').addEventListener('click',csv);
+$('btnBackup').addEventListener('click',backup);
+$('btnRestore').addEventListener('click',function(){$('fileIn').click()});
+$('fileIn').addEventListener('change',function(){restore(this.files&&this.files[0])});
+['fSearch','fMonth','fWorker','fStatus','fType'].forEach(function(i){$(i).addEventListener('input',function(){table(getJobs())})});
+$('themeBtn').addEventListener('click',function(){
+  var r=document.documentElement,dark=r.getAttribute('data-theme')?r.getAttribute('data-theme')==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;
+  r.setAttribute('data-theme',dark?'light':'dark');
+});
+$('jobDate').value=today();
+legacyFix();$('workerName').value=myName();
+render();
+initSync();
+})();
+</script>
+</body>
+</html>
