@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Process and System Design Engineering Innovation·บันทึกงานช่าง (v18)</title>
 <style>
-:root{--bg:#eef2f8;--card:#fff;--text:#1f2a44;--muted:#6b7794;--border:#dde3ef;--p:#4f46e5;--p2:#06b6d4;--ok:#10b981;--warn:#f59e0b;--bad:#ef4444;--line:#06c755;--soft:#f5f7fc;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1424;--card:#1a2038;--text:#e8ecf8;--muted:#98a3c4;--border:#2c3558;--soft:#222a47;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#0f1424;--card:#1a2038;--text:#e8ecf8;--muted:#98a3c4;--border:#2c3558;--soft:#222a47;color-scheme:dark}
+:root{--bg:#eef2f8;--card:#fff;--text:#1f2a44;--muted:#6b7794;--border:#dde3ef;--p:#4f46e5;--p2:#06b6d4;--ok:#10b981;--warn:#f59e0b;--bad:#ef4444;--line:#06c755;--soft:#f5f7fc;--bd2:#b8c1d9;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1424;--card:#1a2038;--text:#e8ecf8;--muted:#98a3c4;--border:#2c3558;--soft:#222a47;--bd2:#4a5580;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1424;--card:#1a2038;--text:#e8ecf8;--muted:#98a3c4;--border:#2c3558;--soft:#222a47;--bd2:#4a5580;color-scheme:dark}
 *{box-sizing:border-box}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--text);font-family:'Sarabun','Segoe UI',Tahoma,sans-serif;padding:16px}
@@ -25,6 +25,12 @@ header h1{margin:0;font-size:22px}header p{margin:4px 0 0;opacity:.9;font-size:1
 label{font-weight:700;font-size:13px;margin-bottom:5px;color:var(--muted)}
 input,select,textarea{padding:10px;border:1px solid var(--border);border-radius:10px;font:inherit;font-size:14px;background:var(--soft);color:var(--text);width:100%}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--p);border-color:transparent}
+/* ฟอร์มเพิ่มงานใหม่: ตัวอักษรชัดขึ้นสำหรับมือถือ */
+#jobForm .fg{margin-bottom:16px}
+#jobForm label{font-weight:800;font-size:15px;margin-bottom:6px;color:var(--text);border-left:4px solid var(--p);padding-left:8px;line-height:1.3}
+#jobForm label .sub{font-weight:400;font-size:12px;color:var(--muted)}
+#jobForm input,#jobForm select,#jobForm textarea{min-height:44px;border:1.5px solid var(--bd2);font-size:16px}
+#jobForm input:focus,#jobForm select:focus,#jobForm textarea:focus{border-color:transparent}
 button{font:inherit;border:0;border-radius:10px;cursor:pointer;color:#fff;font-weight:700;padding:10px 16px;background:var(--p);transition:.2s}
 button:hover{filter:brightness(1.1);transform:translateY(-1px)}
 .b-main{width:100%;font-size:16px;padding:13px;background:linear-gradient(135deg,var(--p),var(--p2))}
@@ -137,7 +143,7 @@ tbody tr.jr td:nth-child(3){min-width:130px}
 <div class="wrap">
 <header>
   <div><h1>🛠️ Process and System Design Engineering Innovation ·บันทึกงานช่าง</h1><p>บันทึกงาน สรุปรายเดือน กราฟ และส่งรายงานเข้า LINE</p></div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="b-ghost" id="bgPick" type="button">🖼️ พื้นหลัง</button><button class="b-ghost" id="bgClear" type="button" style="display:none">🗑️ เอารูปออก</button><button class="b-ghost" id="themeBtn" type="button">🌓 โหมดสี</button><button class="b-ghost" id="botBtn" type="button">🤖 บอท: เปิด</button><button class="b-ghost" id="syncBtn" type="button">☁️ ตั้งค่าซิงก์</button><button class="b-ghost" id="syncCfgBtn" type="button">⚙️</button><input type="file" id="bgFile" accept="image/*" style="display:none"></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="b-ghost" id="bgPick" type="button">🖼️ พื้นหลัง</button><button class="b-ghost" id="bgClear" type="button" style="display:none">🗑️ เอารูปออก</button><button class="b-ghost" id="themeBtn" type="button">🌓 โหมดสี</button><button class="b-ghost" id="botBtn" type="button">🤖 บอท: เปิด</button><button class="b-ghost" id="voiceBtn" type="button">🔊 เสียงบอท: เปิด</button><button class="b-ghost" id="syncBtn" type="button">☁️ ตั้งค่าซิงก์</button><button class="b-ghost" id="syncCfgBtn" type="button">⚙️</button><input type="file" id="bgFile" accept="image/*" style="display:none"></div>
 </header>
 
 <div id="alerts"></div>
@@ -418,7 +424,7 @@ $('tbody').addEventListener('click',function(e){
   }else if(act==='tog'){
     j.status=j.status===DONE?'กำลังดำเนินการ / รออะไหล่':DONE;setJobs(jobs);render();toast('อัปเดตสถานะแล้ว');
   }else if(act==='edit'){startEdit(j)}else if(act==='del'){
-    setJobs(jobs.filter(function(x){return x.id!==id}));if(editId===id){editId=null;editUI();clearForm()}render();showUndo(j)
+    setJobs(jobs.filter(function(x){return x.id!==id}));if(editId===id){editId=null;editUI();clearForm()}render();showUndo(j);botSay('ลบรายการแล้วครับ 🗑️',2400,true)
   }
 });
 
@@ -607,7 +613,7 @@ function confetti(){
   var f=0;(function t(){x.clearRect(0,0,cv.width,cv.height);P.forEach(function(p){p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.r+=.2;x.fillStyle=p.c;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);x.restore()});
     if(++f<95)requestAnimationFrame(t);else x.clearRect(0,0,cv.width,cv.height)})();
 }
-$('tbody').addEventListener('click',function(e){var b=e.target.closest('button[data-act="tog"]');if(b&&b.getAttribute('data-ok')==='0'){confetti();botSay('ปิดงานสำเร็จ! 🎉',3000)}});
+$('tbody').addEventListener('click',function(e){var b=e.target.closest('button[data-act="tog"]');if(b&&b.getAttribute('data-ok')==='0'){confetti();botSay('ปิดงานสำเร็จ! 🎉',3000,true)}});
 // 7) ตัวเลข KPI นับขึ้น + ปุ่มลัด "/" ค้นหา
 var lastK={};
 function countUp(){
@@ -741,18 +747,33 @@ function botPlace(){
   b.style.transform='translate3d('+Math.round(BOT.x)+'px,0,0)';
   b.classList.toggle('edgeL',cx<110);b.classList.toggle('edgeR',cx>W-110);
 }
-function botSay(t,ms){
+var BV={on:true,warned:false};
+function botSpeak(t){
+  if(!BV.on||!window.speechSynthesis||!window.SpeechSynthesisUtterance)return;
+  try{
+    var s=String(t).replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu,'').replace(/\s+/g,' ').trim();
+    if(!s)return;
+    var ss=window.speechSynthesis,u=new SpeechSynthesisUtterance(s),vs=ss.getVoices()||[],th=null,i;
+    for(i=0;i<vs.length;i++){if(/^th/i.test(String(vs[i].lang).replace('_','-'))){th=vs[i];break}}
+    if(!th&&vs.length&&!BV.warned){BV.warned=true;toast('📢 เครื่องนี้ยังไม่มีเสียงภาษาไทย ลองติดตั้งเสียงไทยในการตั้งค่า Text-to-speech ของเครื่อง')}
+    u.lang='th-TH';if(th)u.voice=th;u.rate=1;u.pitch=1.1;
+    ss.cancel();ss.speak(u);
+  }catch(e){}
+}
+function botSay(t,ms,sp){
   if(!BOT||!BOT.on)return;
   var bb=$('botBbl');bb.textContent=t;bb.classList.add('on');
   BOT.mode='talk';BOT.until=Date.now()+(ms||4200);botCls();botPlace();
   if(RM){clearTimeout(BOT.rt);BOT.rt=setTimeout(function(){bb.classList.remove('on')},ms||4200)}
+  if(sp)botSpeak(t);
 }
 function botJump(){var j=$('botJ');if(RM)return;j.classList.remove('jump');void j.offsetWidth;j.classList.add('jump')}
 function botReact(m){
   m=String(m||'');
-  if(m.indexOf('บันทึกงานเรียบร้อย')>=0)botSay('บันทึกให้แล้วครับ 📝',2600);
-  else if(m.indexOf('ซิงก์เรียบร้อย')>=0)botSay('ซิงก์ข้อมูลเรียบร้อย ☁️',2600);
-  else if(m.indexOf('กรุณากรอกข้อมูลให้ครบ')>=0)botSay('ยังกรอกไม่ครบนะ ลองเช็กอีกที 🧐',2800);
+  if(m.indexOf('บันทึกงานเรียบร้อย')>=0)botSay('บันทึกงานเรียบร้อยครับ 📝',2600,true);
+  else if(m.indexOf('แก้ไขข้อมูลเรียบร้อย')>=0)botSay('แก้ไขข้อมูลเรียบร้อยครับ ✏️',2600,true);
+  else if(m.indexOf('ซิงก์เรียบร้อย')>=0)botSay('ซิงก์ข้อมูลเรียบร้อย ☁️',2600,true);
+  else if(m.indexOf('กรุณากรอกข้อมูลให้ครบ')>=0)botSay('ยังกรอกไม่ครบนะ ลองเช็กอีกที 🧐',2800,true);
 }
 function botTick(ts){
   if(!BOT.on)return;
@@ -783,15 +804,29 @@ function botStart(){
   setTimeout(function(){botSay('สวัสดีครับ! ผมน้องช่างบอท 🔧 คอยดูแลงานให้นะ',4500)},900);
 }
 function botStop(){
+  try{window.speechSynthesis&&window.speechSynthesis.cancel()}catch(e){}
   BOT.on=false;cancelAnimationFrame(BOT.raf);$('bot').style.display='none';$('botBtn').textContent='🤖 บอท: ปิด';
 }
 $('botBtn').addEventListener('click',function(){
   var on=!BOT.on;try{localStorage.setItem('botOff',on?'0':'1')}catch(e){}
   if(on)botStart();else botStop();
 });
-$('bot').addEventListener('click',function(){if(BOT.mode==='run')return;botJump();botSay(botPick(),4500)});
+$('bot').addEventListener('click',function(){if(BOT.mode==='run')return;botJump();botSay(botPick(),4500,true)});
 window.addEventListener('resize',function(){var max=Math.max(6,innerWidth-botW()-6);if(BOT.x>max)BOT.x=max;if(BOT.on)botPlace()});
 var botOff=false;try{botOff=localStorage.getItem('botOff')==='1'}catch(e){}
+(function(){
+  var vb=$('voiceBtn');
+  if(!window.speechSynthesis||!window.SpeechSynthesisUtterance){vb.style.display='none';return}
+  try{BV.on=localStorage.getItem('botVoice')!=='0'}catch(e){}
+  function lab(){vb.textContent=BV.on?'🔊 เสียงบอท: เปิด':'🔇 เสียงบอท: ปิด'}
+  lab();
+  try{window.speechSynthesis.getVoices()}catch(e){}
+  vb.addEventListener('click',function(){
+    BV.on=!BV.on;try{localStorage.setItem('botVoice',BV.on?'1':'0')}catch(e){}
+    lab();
+    if(BV.on)botSpeak('เปิดเสียงแล้วครับ');else{try{window.speechSynthesis.cancel()}catch(e){}}
+  });
+})();
 if(botOff)$('botBtn').textContent='🤖 บอท: ปิด';else botStart();
 
 $('jobDate').value=today();
