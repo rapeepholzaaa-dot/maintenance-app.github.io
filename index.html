@@ -136,25 +136,39 @@ tbody tr.jr td:nth-child(3){min-width:130px}
 @keyframes jmp{0%,100%{transform:translateY(0)}45%{transform:translateY(-26px)}}
 @media(max-width:600px){#bot{width:46px;height:57px}}
 @media(prefers-reduced-motion:reduce){header{animation:none}.eye,.antb{animation:none}.dh .ar,.bbl{transition:none}.run .bodyg,.run .legA,.run .legB,.run .arm1,.run .arm2,#botJ.jump{animation:none}}
+
+.tabs{display:flex;gap:8px;margin-top:16px}
+.tabs button{flex:1;background:var(--card);color:var(--text);border:1.5px solid var(--bd2);font-size:15px;padding:12px 6px}
+.tabs button.on{background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;border-color:transparent}
+body[data-tab="dash"] [data-tab]:not([data-tab="dash"]),body[data-tab="add"] [data-tab]:not([data-tab="add"]),body[data-tab="list"] [data-tab]:not([data-tab="list"]){display:none!important}
+.dk{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
+.dk div{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px}
+.dk span{font-size:13px;color:var(--muted);font-weight:700}.dk b{display:block;font-size:24px;margin:4px 0 2px}.dk small{font-size:12px;color:var(--muted)}
+.dk .bad b{color:var(--bad)}
+.dr{display:flex;justify-content:space-between;gap:8px;width:100%;text-align:left;background:var(--soft);color:var(--text);border:1px solid var(--border);margin-top:6px;font-weight:400}
+.dr b{font-weight:700}.dr em{font-style:normal;color:var(--bad);font-weight:700;white-space:nowrap}
+@media(max-width:700px){.dk{grid-template-columns:1fr 1fr}}
 </style>
 </head>
-<body>
+<body data-tab="dash">
 <div id="bgImg"></div>
 <div class="wrap">
 <header>
   <div><h1>🛠️ Process and System Design Engineering Innovation ·บันทึกงานช่าง</h1><p>บันทึกงาน สรุปรายเดือน กราฟ และส่งรายงานเข้า LINE</p></div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="b-ghost" id="bgPick" type="button">🖼️ พื้นหลัง</button><button class="b-ghost" id="bgClear" type="button" style="display:none">🗑️ เอารูปออก</button><button class="b-ghost" id="themeBtn" type="button">🌓 โหมดสี</button><button class="b-ghost" id="botBtn" type="button">🤖 บอท: เปิด</button><button class="b-ghost" id="voiceBtn" type="button">🔊 เสียงบอท: เปิด</button><button class="b-ghost" id="syncBtn" type="button">☁️ ตั้งค่าซิงก์</button><button class="b-ghost" id="syncCfgBtn" type="button">⚙️</button><input type="file" id="bgFile" accept="image/*" style="display:none"></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="b-ghost" id="bgClear" type="button" style="display:none">🗑️ เอารูปออก</button><button class="b-ghost" id="themeBtn" type="button">🌓 โหมดสี</button><button class="b-ghost" id="botBtn" type="button">🤖 บอท: เปิด</button><button class="b-ghost" id="voiceBtn" type="button">🔊 เสียงบอท: เปิด</button><button class="b-ghost" id="syncBtn" type="button">☁️ ตั้งค่าซิงก์</button><button class="b-ghost" id="syncCfgBtn" type="button">⚙️</button><input type="file" id="bgFile" accept="image/*" style="display:none"></div>
 </header>
 
-<div id="alerts"></div>
-<div class="kpis">
+<nav class="tabs" id="tabs"><button type="button" data-go="add">➕ เพิ่มงาน</button><button type="button" data-go="list">📋 รายการ</button><button type="button" data-go="dash" class="on">📊 แดชบอร์ด</button></nav>
+<div data-tab="dash" id="alerts"></div>
+<div data-tab="dash" class="kpis">
   <div class="kpi k1" data-i="📋"><span>📋 งานทั้งหมด</span><b id="kTotal">0</b></div>
   <div class="kpi k2" data-i="✅"><span>✅ เสร็จสิ้น</span><b id="kDone">0</b></div>
   <div class="kpi k3" data-i="⏳"><span>⏳ ค้างดำเนินการ</span><b id="kWait">0</b></div>
   <div class="kpi k4" data-i="💰"><span>💰 รายได้รวม (บาท)</span><b id="kSum">0</b></div>
 </div>
+<div data-tab="dash" id="dashX"></div>
 
-<div class="card">
+<div data-tab="add" class="card">
   <h2>➕ เพิ่มงานใหม่</h2>
   <div id="jobForm">
     <div class="grid">
@@ -180,17 +194,17 @@ tbody tr.jr td:nth-child(3){min-width:130px}
   </div>
 </div>
 
-<div class="charts" id="secCharts" style="margin-top:16px">
+<div data-tab="dash" class="charts" id="secCharts" style="margin-top:16px">
   <div class="card"><h2>📊 งานของช่างแต่ละคน (รายเดือน)</h2><div id="sumWorkers"></div></div>
   <div class="card"><h2>💵 รายได้รายเดือน</h2><div id="revChart"></div></div>
   <div class="card"><h2>🥧 สถานะงาน</h2><div id="statusChart"></div></div>
 </div>
 
-<div class="grid" style="margin-top:16px"><div class="card" style="margin-top:0"><h2>🏆 ช่างยอดเยี่ยม</h2><div id="board"></div></div><div class="card" style="margin-top:0"><h2>🏷️ สัดส่วนประเภทงาน</h2><div id="typeChart"></div></div></div>
+<div data-tab="dash" class="grid" style="margin-top:16px"><div class="card" style="margin-top:0"><h2>🏆 ช่างยอดเยี่ยม</h2><div id="board"></div></div><div class="card" style="margin-top:0"><h2>🏷️ สัดส่วนประเภทงาน</h2><div id="typeChart"></div></div></div>
 
-<div class="card"><h2>🧠 ภาพรวมเชิงลึก</h2><datalist id="customerList"></datalist><div id="insights"></div><small style="color:var(--muted)">ชั่วโมงนับเฉพาะงานที่ใส่เวลาเริ่ม-เสร็จ · ตามเดือนที่เลือกในตัวกรอง (ถ้าไม่เลือก = ทุกเดือน)</small></div>
+<div data-tab="dash" class="card"><h2>🧠 ภาพรวมเชิงลึก</h2><datalist id="customerList"></datalist><div id="insights"></div><small style="color:var(--muted)">ชั่วโมงนับเฉพาะงานที่ใส่เวลาเริ่ม-เสร็จ · ตามเดือนที่เลือกในตัวกรอง (ถ้าไม่เลือก = ทุกเดือน)</small></div>
 
-<div class="card">
+<div data-tab="list" class="card">
   <h2>📋 รายการบันทึกงานทั้งหมด</h2>
   <div class="filters">
     <input type="search" id="fSearch" placeholder="🔍 ค้นหา ช่าง / ลูกค้า / รายละเอียด / วันที่ (เช่น 18/11/2026)">
@@ -295,6 +309,30 @@ function fillSel(sel,first,vals,labelFn){
   if(vals.indexOf(cur)>=0)sel.value=cur;
 }
 
+function prevKey(k){var p=k.split('-'),y=+p[0],m=+p[1]-1;if(m<1){m=12;y--}return y+'-'+(m<10?'0':'')+m}
+function setTab(t){document.body.setAttribute('data-tab',t);Array.prototype.forEach.call(document.querySelectorAll('#tabs button'),function(b){b.classList.toggle('on',b.getAttribute('data-go')===t)});window.scrollTo(0,0)}
+function dash(jobs){
+  var t=today(),mk=t.slice(0,7),pk=prevKey(mk),td=0,od=0,mc=0,ms=0,ps=0,open=[];
+  jobs.forEach(function(j){var k=mKey(j),c=cost(j);
+    if(j.date===t)td++;
+    if(k===mk){mc++;ms+=c}else if(k===pk)ps+=c;
+    if(j.status!==DONE){open.push(j);if(j.date&&dAgo(j.date)>SD())od++}});
+  var dl=ps?Math.round((ms-ps)/ps*100):null;
+  var cmp=dl===null?'ยังไม่มีข้อมูลเดือนก่อน':(dl>=0?'▲ ':'▼ ')+Math.abs(dl)+'% จากเดือนก่อน';
+  var h='<div class="dk"><div><span>📅 งานวันนี้</span><b>'+td+'</b><small>รายการ</small></div>'
+   +'<div class="'+(od?'bad':'')+'"><span>🚨 ค้างเกิน '+SD()+' วัน</span><b>'+od+'</b><small>'+(od?'ควรรีบเช็ก':'ไม่มีงานตกค้าง')+'</small></div>'
+   +'<div><span>💰 รายได้เดือนนี้</span><b>'+money(ms)+'</b><small>'+cmp+'</small></div>'
+   +'<div><span>🔧 งานเดือนนี้</span><b>'+mc+'</b><small>รายการ</small></div></div>';
+  open.sort(function(a,b){return String(a.date).localeCompare(String(b.date))});
+  h+='<div class="card"><h2>⏳ งานค้างที่ต้องรีบทำ</h2>';
+  if(!open.length)h+='<div class="empty">ไม่มีงานค้าง เยี่ยมมาก 🎉</div>';
+  else h+=open.slice(0,5).map(function(j){var d=j.date?dAgo(j.date):0;
+    return '<button type="button" class="dr" data-edit="'+j.id+'"><span><b>'+esc(j.customer||'-')+'</b><br><small>👨‍🔧 '+esc(wl(j).join(', '))+'</small></span><em>'+(d>0?'ค้าง '+d+' วัน':'วันนี้')+'</em></button>'}).join('')
+    +(open.length>5?'<div class="empty">และอีก '+(open.length-5)+' รายการ ดูทั้งหมดที่แท็บ "รายการ"</div>':'');
+  $('dashX').innerHTML=h+'</div>';
+}
+Array.prototype.forEach.call(document.querySelectorAll('#tabs button'),function(b){b.addEventListener('click',function(){setTab(b.getAttribute('data-go'))})});
+$('dashX').addEventListener('click',function(e){var b=e.target.closest('button[data-edit]');if(!b)return;var id=Number(b.getAttribute('data-edit')),j=getJobs().filter(function(x){return x.id===id})[0];if(j)startEdit(j)});
 function render(){
   var jobs=getJobs();
   var months=[],workers=[];
@@ -308,6 +346,7 @@ function render(){
   var sum=jobs.reduce(function(a,j){return a+cost(j)},0);
   $('kTotal').textContent=jobs.length;$('kDone').textContent=done;$('kWait').textContent=jobs.length-done;$('kSum').textContent=money(sum);
 
+  dash(jobs);
   charts(jobs,months,workers,done);
   table(jobs);
   extras(jobs);
@@ -505,7 +544,7 @@ function clearForm(){['workerName','customerName','jobCost','jobDetails','timeSt
 /* ===== v9: แก้ไขรายการ ===== */
 var editId=null;
 function editUI(){var on=editId!=null;$('saveBtn').textContent=on?'💾 บันทึกการแก้ไข':'💾 บันทึกข้อมูลลงระบบ';$('cancelEdit').style.display=on?'block':'none'}
-function startEdit(j){
+function startEdit(j){setTab('add');
   editId=j.id;
   $('jobDate').value=j.date||today();wkSet(j.worker||'');$('customerName').value=j.customer||'';
   $('jobCost').value=j.cost||'';$('jobStatus').value=j.status;$('jobDetails').value=j.details||'';
@@ -557,7 +596,7 @@ var BK='bgImage';
 function SD(){return 3}function BD(){return 7}
 function getBg(){try{return localStorage.getItem(BK)||''}catch(e){return ''}}
 function setBg(u){var el=$('bgImg');el.style.backgroundImage=u?'url("'+u+'")':'';el.style.opacity=u?0.35:0;document.documentElement.classList.toggle('hasbg',!!u);$('bgClear').style.display=u?'':'none'}
-$('bgPick').addEventListener('click',function(){$('bgFile').click()});
+if($('bgPick'))$('bgPick').addEventListener('click',function(){$('bgFile').click()});
 $('bgClear').addEventListener('click',function(){try{localStorage.removeItem(BK)}catch(e){}setBg('');toast('🗑️ เอารูปพื้นหลังออกแล้ว')});
 $('bgFile').addEventListener('change',function(){var f=this.files&&this.files[0],inp=this;if(!f)return;var rd=new FileReader();rd.onload=function(){var im=new Image();im.onload=function(){var w=Math.min(1280,im.width),h=Math.round(im.height*w/im.width),cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(im,0,0,w,h);var u=cv.toDataURL('image/jpeg',0.72);try{localStorage.setItem(BK,u)}catch(e){toast('เก็บรูปถาวรไม่ได้ (รูปอยู่ชั่วคราว)')}setBg(u);toast('🖼️ ตั้งพื้นหลังแล้ว')};im.onerror=function(){toast('อ่านรูปไม่ได้')};im.src=rd.result};rd.readAsDataURL(f);inp.value=''});
 setBg(getBg());
